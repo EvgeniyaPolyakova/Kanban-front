@@ -1,0 +1,25 @@
+:root {
+  --main: #b791f5;
+  --main-text-color: #a674f8;
+  --white: #ffffff;
+  --text-color: #706d75;
+  --error: #c92f2f;
+
+  --app-height: calc(100vh - 80px);
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Roboto", "Arial", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
