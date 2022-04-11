@@ -1,16 +1,12 @@
-import React, { FC } from "react";
+import React from "react";
 import s from "./Button.module.scss";
 import cn from "classnames";
 
-interface Props {
-  onClick?: () => void;
-  type?: "button" | "submit" | "reset" | undefined;
-  className?: string;
-}
+interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
 
-const Button: FC<Props> = ({ children, onClick, type, className }) => {
+const Button = ({ children, className, ...props }: Props) => {
   return (
-    <button className={cn(s.btn, className)} onClick={onClick} type={type}>
+    <button className={cn(s.btn, className)} {...props}>
       {children}
     </button>
   );

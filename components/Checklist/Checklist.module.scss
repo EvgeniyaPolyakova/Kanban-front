@@ -1,0 +1,77 @@
+.checklistProgress {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 10px;
+}
+
+.progressPercent {
+  color: var(--text-color);
+  font-size: 11px;
+  left: 0;
+  line-height: 10px;
+  text-align: center;
+  width: 32px;
+}
+
+.progressBar {
+  background: #091e4214;
+  border-radius: 4px;
+  height: 8px;
+  margin: 0 0 0 15px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 415px;
+}
+
+.progress {
+  background: var(--main);
+  border-radius: 4px;
+  height: 8px;
+  transition: 0.2s width;
+  max-width: 415px;
+}
+
+.checkboxTitle {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.checkbox {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 8px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip: rect(0 0 0 0);
+}
+
+.addChecklistItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  margin-top: 10px;
+  margin-left: 22px;
+}
+
+.inputNewItem {
+  width: 100%;
+  padding: 4px;
+  height: 30px;
+}
+
+.addNewItemBtn {
+  height: 30px;
+  font-size: 18px;
+  width: 180px;
+  margin-top: 10px;
+}

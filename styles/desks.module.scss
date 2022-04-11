@@ -1,0 +1,23 @@
+.title {
+  color: var(--white);
+  font-size: 22px;
+  font-weight: 600;
+  padding-top: 30px;
+  margin: 0;
+}
+
+.message {
+  color: var(--white);
+}
+
+.btnWrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 130px;
+}
+
+.deskListContainer {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+}
+

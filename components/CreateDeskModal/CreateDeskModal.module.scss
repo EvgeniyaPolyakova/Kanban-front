@@ -1,0 +1,46 @@
+.modalWrap {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  z-index: 100;
+  top: 0;
+}
+
+.modalBackDrop {
+  width: 100%;
+  height: 100%;
+  background-color: #3f3157;
+  opacity: 0.5;
+}
+
+.modalBody {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  // width: 100%;
+  max-height: var(--app-height);
+  overflow: hidden;
+  // transform: translateY(100%);
+}
+
+.createContainer {
+  background: var(--white);
+  width: 320px;
+  height: 260px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.title {
+  font-weight: 500;
+  font-size: 20px;
+  padding-top: 20px;
+  margin-bottom: 25px;
+}
+
+.btn {
+  margin-top: 30px;
+}

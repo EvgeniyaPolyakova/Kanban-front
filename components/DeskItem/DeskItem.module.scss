@@ -1,0 +1,13 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--white);
+  border-radius: 8px;
+  max-width: 730px;
+  height: 80px;
+  box-shadow: 0 8px 4px 1px rgba(102, 79, 140, 0.4);
+  padding: 10px 30px;
+  margin: 20px 0;
+  font-size: 22px;
+}

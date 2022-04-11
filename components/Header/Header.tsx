@@ -12,12 +12,12 @@ export function Header() {
         </a>
       </Link>
       <div className={s.btnsContainer}>
-        <button className={s.headerBtn} type="button">
-          Зарегистрироваться
-        </button>
-        <button className={s.headerBtn} type="button">
-          Войти
-        </button>
+        <Link href="/register">
+          <a className={s.headerBtn}>Зарегистрироваться</a>
+        </Link>
+        <Link href="/login">
+          <a className={s.headerBtn}>Войти</a>
+        </Link>
       </div>
     </header>
   );

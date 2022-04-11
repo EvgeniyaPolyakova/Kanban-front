@@ -1,0 +1,23 @@
+.btn {
+  width: 350px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--white);
+  appearance: none;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  color: var(--main);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.btnText {
+  color: var(--text-color);
+  font-size: 16px;
+}

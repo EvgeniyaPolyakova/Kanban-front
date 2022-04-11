@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Input from "../Input";
 import Image from "next/image";
-import s from "./LoginForm.module.scss";
+import s from "./RegisterForm.module.scss";
 import Eye from "../../assets/icons/eye.svg";
 import SlachEye from "../../assets/icons/slash-eye.svg";
 import EnterIcon from "../../assets/icons/enter.svg";
@@ -12,26 +12,30 @@ import { useUser } from "../../hooks/useUser";
 import { useRouter } from "next/router";
 
 const validationSchema = yup.object().shape({
-  login: yup
+  name: yup.string().required("Введите имя"),
+  surname: yup.string().required("Введите фамилию"),
+  email: yup
     .string()
     .email("Некорректный email адрес")
     .required("Введите адрес электронной почты"),
   password: yup.string().required("Введите пароль"),
 });
 
-const LoginForm = () => {
+const RegisterForm = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
-  const { enter } = useUser();
+  const { getToken } = useUser();
   const router = useRouter();
 
   const formik = useFormik({
     initialValues: {
-      login: "",
+      name: "",
+      surname: "",
+      email: "",
       password: "",
     },
     validationSchema,
-    onSubmit: async (values) => {
-      await enter({ ...values });
+    onSubmit: (values) => {
+      getToken({ ...values });
       router.push("/desks");
     },
   });
@@ -54,16 +58,33 @@ const LoginForm = () => {
           />
         </div>
         <div className={s.loginForm}>
-          <EnterIcon className={s.enterIcon} />
-          <h3 className={s.mainTitle}>Войти</h3>
+          <h3 className={s.mainTitle}>Зарегистрироваться</h3>
           <Input
-            name="login"
-            title="Логин"
+            name="name"
+            title="Имя"
             type="text"
-            value={formik.values.login}
+            value={formik.values.name}
             onChange={formik.handleChange}
-            isInvalid={!!formik.errors.login && formik.touched.login}
-            errorMessage={formik.errors.login}
+            isInvalid={!!formik.errors.name && formik.touched.name}
+            errorMessage={formik.errors.name}
+          />
+          <Input
+            name="surname"
+            title="Фамилия"
+            type="text"
+            value={formik.values.surname}
+            onChange={formik.handleChange}
+            isInvalid={!!formik.errors.surname && formik.touched.surname}
+            errorMessage={formik.errors.surname}
+          />
+          <Input
+            name="email"
+            title="Почта"
+            type="text"
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            isInvalid={!!formik.errors.email && formik.touched.email}
+            errorMessage={formik.errors.email}
           />
           <div className={s.inputPasswordWrap}>
             <Input
@@ -84,7 +105,7 @@ const LoginForm = () => {
             </button>
           </div>
           <Button type="submit" className={s.btn}>
-            Войти
+            Зарегистрироваться
           </Button>
         </div>
       </div>
@@ -92,4 +113,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default RegisterForm;

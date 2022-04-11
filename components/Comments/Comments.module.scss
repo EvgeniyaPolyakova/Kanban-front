@@ -1,0 +1,48 @@
+.commentContainer {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+  margin-left: 35px;
+}
+
+.author {
+  margin: 0;
+  color: var(--text-color);
+}
+
+.date {
+  margin: 0;
+  color: var(--text-color);
+}
+
+.authorData {
+  display: flex;
+  justify-content: space-between;
+}
+
+.comment {
+  background: rgba(196, 196, 196, 0.3);
+  border-radius: 6px;
+  margin-top: 6px;
+  padding: 8px 10px;
+}
+
+.sendForm {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.textarea {
+  width: 100%;
+  resize: none;
+  outline: none;
+  font-family: "Roboto", "Arial", sans-serif;
+  padding: 7px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 2px solid #b9b5b5;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}

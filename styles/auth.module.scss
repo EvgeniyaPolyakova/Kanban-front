@@ -1,0 +1,9 @@
+.main {
+  min-height: var(--app-height);
+  background: linear-gradient(
+    rgba(166, 116, 248, 0.7) 15%,
+    rgba(217, 197, 250, 0.6) 85%,
+    rgba(230, 216, 253, 0.26) 100%
+  );
+  position: relative;
+}

@@ -1,0 +1,109 @@
+.columnsWrapper {
+  display: flex;
+  gap: 30px;
+  flex-direction: row;
+  padding: 30px 0;
+  width: calc(100vw - 120px);
+  overflow-x: auto;
+  height: calc(100vh - 70px);
+}
+
+.columnsWrapper::-webkit-scrollbar {
+  height: 8px;
+  background-color: #d2c3ea;
+  opacity: 0.5;
+  border-radius: 4px;
+}
+
+.columnsWrapper::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: var(--main);
+}
+
+.column {
+  background: var(--white);
+  max-width: 280px;
+  height: fit-content;
+  min-height: 100px;
+  border-radius: 8px;
+  box-shadow: 0 8px 4px 1px rgba(102, 79, 140, 0.4);
+}
+
+.separator {
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(183, 145, 245, 0) 0%,
+    var(--main) 50%,
+    rgba(183, 145, 245, 0) 100%
+  );
+}
+
+.cardList {
+  padding-top: 5px;
+}
+
+.createCardBtn {
+  width: 260px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  background: transparent;
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  margin: 10px;
+
+  svg > path {
+    fill: var(--main);
+  }
+}
+
+.title {
+  padding: 10px 0;
+  text-align: center;
+  margin: 0;
+  color: var(--main);
+  font-weight: 600;
+}
+
+.btn {
+  min-width: 260px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  border-radius: 8px;
+  color: var(--white);
+  background: var(--dark-grey);
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 4px 1px rgba(102, 79, 140, 0.4);
+}
+
+.createForm {
+  background: var(--white);
+  min-width: 280px;
+  max-width: 280px;
+  height: fit-content;
+  border-radius: 8px;
+  box-shadow: 0 8px 4px 1px rgba(102, 79, 140, 0.4);
+}
+
+.formWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.inputColumnTitle {
+  border: 2px solid var(--main) !important;
+}
