@@ -1,34 +1,35 @@
-import { NextPage } from "next";
+import { GetServerSideProps, NextPage } from "next";
 import { Layout } from "../../components/Layout";
 import s from "../../styles/desk.module.scss";
 import BtnIcon from "../../assets/icons/plus.svg";
 import React, { useState } from "react";
 import Input from "../../components/Input";
-import { useFormik } from "formik";
-import * as yup from "yup";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import { DeskColumn } from "../../interfaces/desk";
 import OutsideClickHandler from "react-outside-click-handler";
 import CardModal from "../../components/CardModal";
-
-const validationSchema = yup.object().shape({
-  name: yup.string().required("Введите заголовок"),
-});
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  resetServerContext,
+  DropResult,
+} from "react-beautiful-dnd";
 
 const columnsArray: DeskColumn[] = [
   {
-    id: 1,
+    id: 0,
     title: "Нужно сделать",
     cards: [],
   },
   {
-    id: 2,
+    id: 1,
     title: "В процессе",
     cards: [],
   },
   {
-    id: 3,
+    id: 2,
     title: "Готово",
     cards: [],
   },
@@ -40,6 +41,7 @@ const Desk: NextPage = () => {
   const [columns, setColumns] = useState<DeskColumn[]>(columnsArray);
   const [cardName, setCardName] = useState<string>("");
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+  const [columnName, setColumnName] = useState<string>("");
 
   const handleClickCreate = () => {
     setCreateColumn(true);
@@ -55,8 +57,23 @@ const Desk: NextPage = () => {
     setCardName(e.target.value);
   };
 
+  const handleChangeNewColumnName = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setColumnName(e.target.value);
+  };
+
+  const handleAddNewColumn = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setColumns((prev) => [
+      ...prev,
+      { id: columns.length, title: columnName, cards: [] },
+    ]);
+    setColumnName("");
+  };
+
   const outsideClickCreateCard = () => {
-    setUpdateColumnId("0");
+    setUpdateColumnId("-1");
   };
 
   const outsideClickCreateColumn = () => {
@@ -78,6 +95,8 @@ const Desk: NextPage = () => {
     setCardName("");
   };
 
+  console.log(columns);
+
   const handleCardOpen = () => {
     setIsCardModalOpen(true);
   };
@@ -86,80 +105,111 @@ const Desk: NextPage = () => {
     setIsCardModalOpen(false);
   };
 
-  const formik = useFormik({
-    initialValues: {
-      name: "",
-    },
-    validationSchema,
-    onSubmit: (values, formikHelpers) => {
-      console.log(values);
+  const handleOrderUpdate = (result: DropResult) => {
+    if (!result.destination) return;
 
-      setColumns((prev) => [
-        ...prev,
-        { id: prev.length + 1, title: values.name, cards: [] },
-      ]);
-      formikHelpers.resetForm();
-    },
-  });
+    const destinationId = parseInt(result.destination.droppableId);
+    const sourceId = parseInt(result.source.droppableId);
+
+    const [removedSort] = columns[sourceId].cards.splice(
+      result.source.index,
+      1
+    );
+
+    columns[destinationId].cards.splice(
+      result.destination.index,
+      0,
+      removedSort
+    );
+  };
 
   return (
     <>
       <Layout>
         <div className={s.columnsWrapper}>
-          {columns.map((column) => (
-            <div className={s.column} key={column.id}>
-              <p className={s.title}>{column.title}</p>
-              <div className={s.separator} />
+          <DragDropContext onDragEnd={handleOrderUpdate}>
+            {columns.map((column) => (
+              <div className={s.column} key={column.id}>
+                <p className={s.title}>{column.title}</p>
+                <div className={s.separator} />
 
-              <div className={s.cardList}>
-                {column.cards.map((card) => (
-                  <Card
-                    title={card.title}
-                    key={card.id}
-                    onClick={handleCardOpen}
-                  />
-                ))}
-              </div>
-              {+updateColumnId === column.id ? (
-                <OutsideClickHandler onOutsideClick={outsideClickCreateCard}>
-                  <form className={s.createForm} onSubmit={handleCreateCard}>
-                    <div className={s.formWrap}>
-                      <Input
-                        value={cardName}
-                        onChange={handleChangeCardName}
-                        className={s.inputColumnTitle}
-                      />
-                      <Button type="submit" disabled={!cardName}>
-                        Добавить
-                      </Button>
+                <Droppable droppableId={`${column.id}`} type="PERSON">
+                  {(provided) => (
+                    <div
+                      // id="droppable"
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                    >
+                      <div className={s.cardList}>
+                        {column.cards.map((card, index) => (
+                          <Draggable
+                            key={card.id}
+                            draggableId={String(card.id)}
+                            index={index}
+                          >
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                              >
+                                <Card
+                                  title={card.title}
+                                  key={card.id}
+                                  onClick={handleCardOpen}
+                                />
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
                     </div>
-                  </form>
-                </OutsideClickHandler>
-              ) : (
-                <button
-                  className={s.createCardBtn}
-                  type="button"
-                  onClick={handleClickCreateCard}
-                  data-id={column.id}
-                >
-                  <BtnIcon />
-                  Добавить карточку
-                </button>
-              )}
-            </div>
-          ))}
+                  )}
+                </Droppable>
+
+                {+updateColumnId === column.id ? (
+                  <OutsideClickHandler onOutsideClick={outsideClickCreateCard}>
+                    <form className={s.createForm} onSubmit={handleCreateCard}>
+                      <div className={s.formWrap}>
+                        <Input
+                          value={cardName}
+                          onChange={handleChangeCardName}
+                          className={s.inputColumnTitle}
+                        />
+                        <Button type="submit" disabled={!cardName}>
+                          Добавить
+                        </Button>
+                      </div>
+                    </form>
+                  </OutsideClickHandler>
+                ) : (
+                  <button
+                    className={s.createCardBtn}
+                    type="button"
+                    onClick={handleClickCreateCard}
+                    data-id={column.id}
+                  >
+                    <BtnIcon />
+                    Добавить карточку
+                  </button>
+                )}
+              </div>
+            ))}
+          </DragDropContext>
+
           {createColumn ? (
             <OutsideClickHandler onOutsideClick={outsideClickCreateColumn}>
-              <form className={s.createForm} onSubmit={formik.handleSubmit}>
+              <form className={s.createForm} onSubmit={handleAddNewColumn}>
                 <div className={s.formWrap}>
                   <Input
                     type="text"
                     name="name"
-                    value={formik.values.name}
-                    onChange={formik.handleChange}
+                    value={columnName}
+                    onChange={handleChangeNewColumnName}
                     className={s.inputColumnTitle}
-                    isInvalid={!!formik.errors.name && formik.touched.name}
-                    errorMessage={formik.errors.name}
+                    // isInvalid={!!formik.errors.name && formik.touched.name}
+                    // errorMessage={formik.errors.name}
                   />
                   <Button type="submit">Добавить</Button>
                 </div>
@@ -179,3 +229,9 @@ const Desk: NextPage = () => {
 };
 
 export default Desk;
+
+export const getServerSideProps: GetServerSideProps = async ({ query }) => {
+  resetServerContext(); // <-- CALL RESET SERVER CONTEXT, SERVER SIDE
+
+  return { props: { data: [] } };
+};

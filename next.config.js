@@ -26,4 +26,12 @@ const nextConfig = {
   },
 };
 
-module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+const strict = {
+  reactStrictMode: true,
+};
+
+module.exports = withSentryConfig(
+  nextConfig,
+  sentryWebpackPluginOptions,
+  strict
+);
