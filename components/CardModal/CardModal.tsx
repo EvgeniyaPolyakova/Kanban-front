@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
-import OutsideClickHandler from "react-outside-click-handler";
-import s from "./CardModal.module.scss";
-import TitleIcon from "../../assets/icons/card-title.svg";
-import DescriptionIcon from "../../assets/icons/description.svg";
-import ChecklistIcon from "../../assets/icons/checklist.svg";
-import AddCheclistIcon from "../../assets/icons/circle-plus.svg";
-import FileIcon from "../../assets/icons/file.svg";
-import ClockIcon from "../../assets/icons/clock.svg";
-import Checklist from "../Checklist";
-import { getISODate } from "../../helpers/date";
-import Comments from "../Comments";
-import CommentsIcon from "../../assets/icons/comment.svg";
+import React, { useState } from 'react';
+import OutsideClickHandler from 'react-outside-click-handler';
+import s from './CardModal.module.scss';
+import TitleIcon from '../../assets/icons/card-title.svg';
+import DescriptionIcon from '../../assets/icons/description.svg';
+import ChecklistIcon from '../../assets/icons/checklist.svg';
+import AddChecklistIcon from '../../assets/icons/circle-plus.svg';
+import FileIcon from '../../assets/icons/file.svg';
+import ClockIcon from '../../assets/icons/clock.svg';
+import Checklist from '../Checklist';
+import { getISODate } from '../../helpers/date';
+import Comments from '../Comments';
+import CommentsIcon from '../../assets/icons/comment.svg';
 
 interface Props {
   handleOutsideClick: () => void;
@@ -21,31 +21,23 @@ const CardModal = ({ handleOutsideClick }: Props) => {
   const [isFileAdd, setIsFileAdd] = useState<boolean>(false);
   const [isDateAdd, setIsDateAdd] = useState<boolean>(false);
   const [deadline, setDeadline] = useState<string>(getISODate(new Date()));
-  const [fileName, setFileName] = useState<string>("");
+  const [fileName, setFileName] = useState<string>('');
 
-  const handleAddChecklistToCard = () => {
-    setIsChecklistAdd(true);
-  };
+  const handleAddChecklistToCard = () => setIsChecklistAdd(true);
 
-  const handleAddFileToCard = () => {
-    setIsFileAdd(true);
-  };
+  const handleAddFileToCard = () => setIsFileAdd(true);
 
-  const handleAddDateToCard = () => {
-    setIsDateAdd(true);
-  };
+  const handleAddDateToCard = () => setIsDateAdd(true);
+
+  const handleSetDeadline = (e: React.ChangeEvent<HTMLInputElement>) => setDeadline(e.target.value);
 
   const handleUploadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+    const { files } = e.target;
     if (files) {
       setFileName(files[0].name);
       // let formData = new FormData();
       // formData.append("file", files[0]);
     }
-  };
-
-  const handleSetDeadline = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDeadline(e.target.value);
   };
 
   return (
@@ -60,12 +52,7 @@ const CardModal = ({ handleOutsideClick }: Props) => {
                 <p className={s.title}>Title</p>
               </div>
               {isDateAdd && (
-                <input
-                  type="date"
-                  className={s.datePicker}
-                  value={deadline}
-                  onChange={handleSetDeadline}
-                />
+                <input type="date" className={s.datePicker} value={deadline} onChange={handleSetDeadline} />
               )}
               <div className={s.titleWrap}>
                 <DescriptionIcon />
@@ -94,12 +81,8 @@ const CardModal = ({ handleOutsideClick }: Props) => {
                   </ul>
 
                   <label className={s.labelInputFile}>
-                    <AddCheclistIcon />
-                    <input
-                      type="file"
-                      className={s.inputFile}
-                      onChange={handleUploadFile}
-                    />
+                    <AddChecklistIcon />
+                    <input type="file" className={s.inputFile} onChange={handleUploadFile} />
                     Прикрепить файл
                   </label>
                 </>
@@ -112,14 +95,11 @@ const CardModal = ({ handleOutsideClick }: Props) => {
             </div>
             <div>
               <div className={s.titleWrap}>
-                {/* <AddCheclistIcon /> */}
+                {/* <AddChecklistIcon /> */}
                 Добавить на карточку
               </div>
               <div className={s.btnsWrap}>
-                <button
-                  className={s.addButton}
-                  onClick={handleAddChecklistToCard}
-                >
+                <button className={s.addButton} onClick={handleAddChecklistToCard}>
                   <ChecklistIcon />
                   Чек-лист
                 </button>
@@ -140,4 +120,4 @@ const CardModal = ({ handleOutsideClick }: Props) => {
   );
 };
 
-export default CardModal;
+export default React.memo(CardModal);

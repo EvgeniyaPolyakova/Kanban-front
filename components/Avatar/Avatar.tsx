@@ -1,17 +1,14 @@
-import { useEffect, useState } from "react";
-import s from "./Avatar.module.scss";
+import React, { useMemo } from 'react';
+import s from './Avatar.module.scss';
 
 interface Props {
   name: string;
 }
 
 const Avatar = ({ name }: Props) => {
-  const [abbreviation, setAbbreviation] = useState<string>("");
-
-  useEffect(() => {
-    const abbr = name.split(" ");
-    const avatarName = abbr[0][0].toUpperCase() + abbr[1][0].toUpperCase();
-    setAbbreviation(avatarName);
+  const abbreviation = useMemo<string>(() => {
+    const [firstName, lastName] = name.split(' ');
+    return firstName[0].toUpperCase() + lastName[0].toUpperCase();
   }, [name]);
 
   return <div className={s.avatar}>{abbreviation}</div>;

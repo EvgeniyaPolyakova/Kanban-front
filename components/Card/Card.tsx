@@ -1,13 +1,14 @@
-import s from "./Card.module.scss";
+import React from 'react';
+import s from './Card.module.scss';
 
-interface Props {
+interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement>{
   title: string;
   onClick: () => void;
 }
 
-const Card = ({ title, onClick }: Props) => {
+const Card = ({ title, onClick, ...props }: Props) => {
   return (
-    <button type="button" className={s.card} onClick={onClick}>
+    <button type="button" className={s.card} onClick={onClick} {...props}>
       {title}
     </button>
   );

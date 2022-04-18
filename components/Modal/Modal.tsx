@@ -1,5 +1,5 @@
-import React from "react";
-import s from "./Modal.module.scss";
+import React from 'react';
+import s from './Modal.module.scss';
 
 interface Props {
   isShow: boolean;

@@ -1,6 +1,6 @@
-import s from "./DeskItem.module.scss";
-import DeskIcon from "../../assets/icons/desk.svg";
-import Link from "next/link";
+import s from './DeskItem.module.scss';
+import DeskIcon from '../../assets/icons/desk.svg';
+import Link from 'next/link';
 
 interface Props {
   name: string;

@@ -1,44 +1,45 @@
-import React, { useState } from "react";
-import Input from "../Input";
-import Image from "next/image";
-import s from "./LoginForm.module.scss";
-import Eye from "../../assets/icons/eye.svg";
-import SlachEye from "../../assets/icons/slash-eye.svg";
-import EnterIcon from "../../assets/icons/enter.svg";
-import Button from "../Button";
-import { useFormik } from "formik";
-import * as yup from "yup";
-import { useUser } from "../../hooks/useUser";
-import { useRouter } from "next/router";
+import React, { useState } from 'react';
+import Input from '../Input';
+import Image from 'next/image';
+import s from './LoginForm.module.scss';
+import Eye from '../../assets/icons/eye.svg';
+import SlashEye from '../../assets/icons/slash-eye.svg';
+import EnterIcon from '../../assets/icons/enter.svg';
+import Button from '../Button';
+import { useFormik } from 'formik';
+import * as yup from 'yup';
+import { useUser } from '../../hooks/useUser';
+import { useRouter } from 'next/router';
+import useLogger from '../../hooks/useLogger';
 
 const validationSchema = yup.object().shape({
-  login: yup
-    .string()
-    .email("Некорректный email адрес")
-    .required("Введите адрес электронной почты"),
-  password: yup.string().required("Введите пароль"),
+  login: yup.string().email('Некорректный email адрес').required('Введите адрес электронной почты'),
+  password: yup.string().required('Введите пароль'),
 });
 
 const LoginForm = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const { enter } = useUser();
   const router = useRouter();
+  const logger = useLogger();
 
   const formik = useFormik({
     initialValues: {
-      login: "",
-      password: "",
+      login: '',
+      password: '',
     },
     validationSchema,
-    onSubmit: async (values) => {
-      await enter({ ...values });
-      router.push("/desks");
+    onSubmit: async values => {
+      try {
+        await enter(values);
+        await router.push('/desks');
+      } catch (err) {
+        logger.error(err);
+      }
     },
   });
 
-  const handleShowPassword = () => {
-    setIsShowPassword((prev) => !prev);
-  };
+  const handleShowPassword = () => setIsShowPassword(prev => !prev);
 
   return (
     <form className={s.form} onSubmit={formik.handleSubmit}>
@@ -57,30 +58,21 @@ const LoginForm = () => {
           <EnterIcon className={s.enterIcon} />
           <h3 className={s.mainTitle}>Войти</h3>
           <Input
-            name="login"
-            title="Логин"
-            type="text"
-            value={formik.values.login}
-            onChange={formik.handleChange}
+            label="Логин"
             isInvalid={!!formik.errors.login && formik.touched.login}
             errorMessage={formik.errors.login}
+            {...formik.getFieldProps('login')}
           />
           <div className={s.inputPasswordWrap}>
             <Input
-              name="password"
-              title="Пароль"
-              type={isShowPassword ? "text" : "password"}
-              value={formik.values.password}
-              onChange={formik.handleChange}
+              label="Пароль"
+              type={isShowPassword ? 'text' : 'password'}
               isInvalid={!!formik.errors.password && formik.touched.password}
               errorMessage={formik.errors.password}
+              {...formik.getFieldProps('password')}
             />
-            <button
-              type="button"
-              className={s.showPasswordBtn}
-              onClick={handleShowPassword}
-            >
-              {isShowPassword ? <SlachEye /> : <Eye />}
+            <button type="button" className={s.showPasswordBtn} onClick={handleShowPassword}>
+              {isShowPassword ? <SlashEye /> : <Eye />}
             </button>
           </div>
           <Button type="submit" className={s.btn}>

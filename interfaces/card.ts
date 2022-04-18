@@ -1,7 +1,7 @@
 export interface CardChecklist {
   id: number;
   task: string;
-  complited: boolean;
+  completed: boolean;
 }
 
 export interface Comment {

@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const { withSentryConfig } = require("@sentry/nextjs");
+const { withSentryConfig } = require('@sentry/nextjs');
 
 const sentryWebpackPluginOptions = {
   silent: true,
@@ -14,7 +14,7 @@ const nextConfig = {
       issuer: /\.(js|ts)x?$/,
       use: [
         {
-          loader: "@svgr/webpack",
+          loader: '@svgr/webpack',
           options: {
             svgo: false,
           },
@@ -26,12 +26,4 @@ const nextConfig = {
   },
 };
 
-const strict = {
-  reactStrictMode: true,
-};
-
-module.exports = withSentryConfig(
-  nextConfig,
-  sentryWebpackPluginOptions,
-  strict
-);
+module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions);

@@ -1,1 +1,1 @@
-export { default } from "./CreateDeskModal";
+export { default } from './CreateDeskModal';

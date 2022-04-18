@@ -1,1 +1,1 @@
-export { default } from "./DeskItem";
+export { default } from './DeskItem';

@@ -1,47 +1,41 @@
-import { GetServerSideProps, NextPage } from "next";
-import { Layout } from "../../components/Layout";
-import s from "../../styles/desk.module.scss";
-import BtnIcon from "../../assets/icons/plus.svg";
-import React, { useState } from "react";
-import Input from "../../components/Input";
-import Button from "../../components/Button";
-import Card from "../../components/Card";
-import { DeskColumn } from "../../interfaces/desk";
-import OutsideClickHandler from "react-outside-click-handler";
-import CardModal from "../../components/CardModal";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  resetServerContext,
-  DropResult,
-} from "react-beautiful-dnd";
+import { GetServerSideProps, NextPage } from 'next';
+import { Layout } from '../../components/Layout';
+import s from '../../styles/desk.module.scss';
+import BtnIcon from '../../assets/icons/plus.svg';
+import React, { useCallback, useState } from 'react';
+import Input from '../../components/Input';
+import Button from '../../components/Button';
+import Card from '../../components/Card';
+import { DeskColumn } from '../../interfaces/desk';
+import OutsideClickHandler from 'react-outside-click-handler';
+import CardModal from '../../components/CardModal';
+import { DragDropContext, Droppable, Draggable, resetServerContext, DropResult } from 'react-beautiful-dnd';
 
 const columnsArray: DeskColumn[] = [
   {
     id: 0,
-    title: "Нужно сделать",
+    title: 'Нужно сделать',
     cards: [],
   },
   {
     id: 1,
-    title: "В процессе",
+    title: 'В процессе',
     cards: [],
   },
   {
     id: 2,
-    title: "Готово",
+    title: 'Готово',
     cards: [],
   },
 ];
 
 const Desk: NextPage = () => {
   const [createColumn, setCreateColumn] = useState<boolean>(false);
-  const [updateColumnId, setUpdateColumnId] = useState<string>("");
+  const [updateColumnId, setUpdateColumnId] = useState<string>('');
   const [columns, setColumns] = useState<DeskColumn[]>(columnsArray);
-  const [cardName, setCardName] = useState<string>("");
+  const [cardName, setCardName] = useState<string>('');
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
-  const [columnName, setColumnName] = useState<string>("");
+  const [columnName, setColumnName] = useState<string>('');
 
   const handleClickCreate = () => {
     setCreateColumn(true);
@@ -57,23 +51,18 @@ const Desk: NextPage = () => {
     setCardName(e.target.value);
   };
 
-  const handleChangeNewColumnName = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChangeNewColumnName = (e: React.ChangeEvent<HTMLInputElement>) => {
     setColumnName(e.target.value);
   };
 
   const handleAddNewColumn = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setColumns((prev) => [
-      ...prev,
-      { id: columns.length, title: columnName, cards: [] },
-    ]);
-    setColumnName("");
+    setColumns(prev => [...prev, { id: columns.length, title: columnName, cards: [] }]);
+    setColumnName('');
   };
 
   const outsideClickCreateCard = () => {
-    setUpdateColumnId("-1");
+    setUpdateColumnId('-1');
   };
 
   const outsideClickCreateColumn = () => {
@@ -82,8 +71,8 @@ const Desk: NextPage = () => {
 
   const handleCreateCard = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setColumns((prev) =>
-      prev.map((column) =>
+    setColumns(prev =>
+      prev.map(column =>
         column.id === +updateColumnId
           ? {
               ...column,
@@ -92,7 +81,7 @@ const Desk: NextPage = () => {
           : column
       )
     );
-    setCardName("");
+    setCardName('');
   };
 
   console.log(columns);
@@ -101,9 +90,10 @@ const Desk: NextPage = () => {
     setIsCardModalOpen(true);
   };
 
-  const handleCloseCard = () => {
+  const handleCloseCard = useCallback(() => {
     setIsCardModalOpen(false);
-  };
+  }, []);
+
 
   const handleOrderUpdate = (result: DropResult) => {
     if (!result.destination) return;
@@ -111,16 +101,9 @@ const Desk: NextPage = () => {
     const destinationId = parseInt(result.destination.droppableId);
     const sourceId = parseInt(result.source.droppableId);
 
-    const [removedSort] = columns[sourceId].cards.splice(
-      result.source.index,
-      1
-    );
+    const [removedSort] = columns[sourceId].cards.splice(result.source.index, 1);
 
-    columns[destinationId].cards.splice(
-      result.destination.index,
-      0,
-      removedSort
-    );
+    columns[destinationId].cards.splice(result.destination.index, 0, removedSort);
   };
 
   return (
@@ -128,13 +111,13 @@ const Desk: NextPage = () => {
       <Layout>
         <div className={s.columnsWrapper}>
           <DragDropContext onDragEnd={handleOrderUpdate}>
-            {columns.map((column) => (
+            {columns.map(column => (
               <div className={s.column} key={column.id}>
                 <p className={s.title}>{column.title}</p>
                 <div className={s.separator} />
 
                 <Droppable droppableId={`${column.id}`} type="PERSON">
-                  {(provided) => (
+                  {provided => (
                     <div
                       // id="droppable"
                       ref={provided.innerRef}
@@ -142,22 +125,10 @@ const Desk: NextPage = () => {
                     >
                       <div className={s.cardList}>
                         {column.cards.map((card, index) => (
-                          <Draggable
-                            key={card.id}
-                            draggableId={String(card.id)}
-                            index={index}
-                          >
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                              >
-                                <Card
-                                  title={card.title}
-                                  key={card.id}
-                                  onClick={handleCardOpen}
-                                />
+                          <Draggable key={card.id} draggableId={String(card.id)} index={index}>
+                            {provided => (
+                              <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                                <Card title={card.title} key={card.id} onClick={handleCardOpen} />
                               </div>
                             )}
                           </Draggable>
@@ -172,11 +143,7 @@ const Desk: NextPage = () => {
                   <OutsideClickHandler onOutsideClick={outsideClickCreateCard}>
                     <form className={s.createForm} onSubmit={handleCreateCard}>
                       <div className={s.formWrap}>
-                        <Input
-                          value={cardName}
-                          onChange={handleChangeCardName}
-                          className={s.inputColumnTitle}
-                        />
+                        <Input value={cardName} onChange={handleChangeCardName} className={s.inputColumnTitle} />
                         <Button type="submit" disabled={!cardName}>
                           Добавить
                         </Button>
@@ -184,12 +151,7 @@ const Desk: NextPage = () => {
                     </form>
                   </OutsideClickHandler>
                 ) : (
-                  <button
-                    className={s.createCardBtn}
-                    type="button"
-                    onClick={handleClickCreateCard}
-                    data-id={column.id}
-                  >
+                  <button className={s.createCardBtn} type="button" onClick={handleClickCreateCard} data-id={column.id}>
                     <BtnIcon />
                     Добавить карточку
                   </button>
