@@ -1,6 +1,6 @@
-import type { NextPage } from "next";
-import { Layout } from "../components/Layout";
-import LoginForm from "../components/LoginForm";
+import type { NextPage } from 'next';
+import { Layout } from '../components/Layout';
+import LoginForm from '../components/LoginForm';
 
 const Login: NextPage = () => {
   return (

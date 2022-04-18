@@ -1,6 +1,6 @@
-import React from "react";
-import s from "./Button.module.scss";
-import cn from "classnames";
+import React from 'react';
+import s from './Button.module.scss';
+import cn from 'classnames';
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
 

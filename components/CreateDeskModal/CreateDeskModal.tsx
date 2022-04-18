@@ -1,11 +1,11 @@
-import { useState } from "react";
-import Button from "../Button";
-import Input from "../Input";
-import s from "./CreateDeskModal.module.scss";
-import OutsideClickHandler from "react-outside-click-handler";
-import { useRouter } from "next/router";
-import { useFormik } from "formik";
-import * as yup from "yup";
+import React from 'react';
+import Button from '../Button';
+import Input from '../Input';
+import s from './CreateDeskModal.module.scss';
+import OutsideClickHandler from 'react-outside-click-handler';
+import { useRouter } from 'next/router';
+import { useFormik } from 'formik';
+import * as yup from 'yup';
 
 interface Props {
   handleOutsideClick: () => void;
@@ -15,15 +15,10 @@ interface Props {
 }
 
 const validationSchema = yup.object().shape({
-  name: yup.string().required("Введите название"),
+  name: yup.string().required('Введите название'),
 });
 
-const CreateDeskModal = ({
-  handleOutsideClick,
-  onSubmit,
-  value,
-  setValue,
-}: Props) => {
+const CreateDeskModal = ({ handleOutsideClick, onSubmit, value, setValue }: Props) => {
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,7 +48,7 @@ const CreateDeskModal = ({
             <Input
               name="name"
               type="text"
-              title="Название"
+              label="Название"
               value={value}
               onChange={handleChange}
               // isInvalid={!!formik.errors.name && formik.touched.name}

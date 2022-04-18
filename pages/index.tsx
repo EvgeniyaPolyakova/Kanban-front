@@ -1,15 +1,15 @@
-import type { NextPage } from "next";
-import Head from "next/head";
-import Image from "next/image";
-import { Header } from "../components/Header";
-import styles from "../styles/Home.module.scss";
-import Title from "../assets/images/kanban.svg";
-import Button from "../components/Button";
-import { useState } from "react";
-import Modal from "../components/Modal/Modal";
-import LoginForm from "../components/LoginForm";
-import Link from "next/link";
-import { Layout } from "../components/Layout";
+import type { NextPage } from 'next';
+import Head from 'next/head';
+import Image from 'next/image';
+import { Header } from '../components/Header';
+import styles from '../styles/Home.module.scss';
+import Title from '../assets/images/kanban.svg';
+import Button from '../components/Button';
+import { useState } from 'react';
+import Modal from '../components/Modal/Modal';
+import LoginForm from '../components/LoginForm';
+import Link from 'next/link';
+import { Layout } from '../components/Layout';
 
 const Home: NextPage = () => {
   const [isOpen, setIsOpen] = useState(false);
