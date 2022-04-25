@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { NextPage } from 'next';
 import { useState } from 'react';
 import CreateDesk from '../components/CreateDesk';
@@ -6,12 +6,27 @@ import CreateDeskModal from '../components/CreateDeskModal';
 import DeskItem from '../components/DeskItem';
 import { Layout } from '../components/Layout';
 import s from '../styles/desks.module.scss';
-
-const deskArray = ['Доска 1', 'Доска 2'];
+import useLogger from '../hooks/useLogger';
+import { createDesk, getDesksList } from '../api/desks';
+import { Desk } from '../interfaces/desk';
 
 const Desks: NextPage = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [deskName, setDeskName] = useState('');
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [deskName, setDeskName] = useState<string>('');
+  const logger = useLogger();
+  const [deskArray, setDeskArray] = useState<Desk[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await getDesksList(1);
+        setDeskArray(data);
+      } catch (err) {
+        logger.error(err);
+      }
+    })();
+  }, []);
+
   const handleClick = () => {
     setIsOpen(true);
   };
@@ -20,9 +35,16 @@ const Desks: NextPage = () => {
     setIsOpen(false);
   };
 
-  const handleCreateDesk = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateDesk = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    deskArray.push(deskName);
+    const prevState = deskArray;
+    try {
+      const { data } = await createDesk({ userId: 1, name: deskName });
+      setDeskArray(prev => [...prev, data]);
+    } catch (err) {
+      setDeskArray(prevState);
+      logger.error(err);
+    }
     setIsOpen(false);
   };
 
@@ -34,7 +56,7 @@ const Desks: NextPage = () => {
           <div className={s.deskListContainer}>
             <div>
               {deskArray.map(desk => (
-                <DeskItem key={desk} name={desk} />
+                <DeskItem key={desk.id} name={desk.name} id={desk.id} />
               ))}
             </div>
             <CreateDesk onClick={handleClick} />

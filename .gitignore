@@ -42,3 +42,5 @@ yarn-error.log*
 # IDE
 .idea
 .vscode
+
+Questions.md

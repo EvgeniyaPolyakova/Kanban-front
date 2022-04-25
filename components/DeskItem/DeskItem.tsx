@@ -4,11 +4,12 @@ import Link from 'next/link';
 
 interface Props {
   name: string;
+  id: number;
 }
 
-const DeskItem = ({ name }: Props) => {
+const DeskItem = ({ name, id }: Props) => {
   return (
-    <Link href="/desk/1">
+    <Link href={`/desk/${id}`}>
       <a className={s.wrap}>
         <DeskIcon />
         {name}

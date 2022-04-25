@@ -1,9 +1,9 @@
 import React from 'react';
 import s from './Card.module.scss';
 
-interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement>{
+interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   title: string;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent<HTMLElement>) => void;
 }
 
 const Card = ({ title, onClick, ...props }: Props) => {

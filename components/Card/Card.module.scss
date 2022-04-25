@@ -1,16 +1,16 @@
 .card {
-  width: 260px;
-  background: linear-gradient(rgba(222, 222, 222, 0) 50%, rgba(222, 222, 222, 1) 100%);
+  width: 250px;
+  background: linear-gradient(rgba(222, 222, 222, 0) 30%, rgba(222, 222, 222, 1) 100%);
   border-radius: 8px;
   padding: 10px 8px;
   color: var(--text-color);
   font-weight: 600;
-  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
-  margin: 10px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.25);
   text-overflow: ellipsis;
   overflow: hidden;
   border: none;
   appearance: none;
   cursor: pointer;
   text-align: left;
+  margin-bottom: 8px;
 }
