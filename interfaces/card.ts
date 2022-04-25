@@ -6,8 +6,8 @@ export interface CardInterface {
   userId?: number;
   number: number;
   title: string;
-  description?: string;
-  deadline?: Date;
+  description?: string | null;
+  deadline?: Date | null;
   checklists?: CardChecklist[];
   comments?: Comment[];
   files?: File[];

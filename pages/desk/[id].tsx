@@ -29,17 +29,16 @@ const Desk: NextPage = () => {
   const router = useRouter();
 
   useEffect(() => {
+    if (!router.isReady) return;
     (async () => {
       try {
-        if (router.query.id) {
-          const { data } = await getColumns(+router.query.id);
-          setColumns(data);
-        }
+        const { data } = await getColumns(+router.query.id!);
+        setColumns(data);
       } catch (err) {
         logger.error(err);
       }
     })();
-  }, [router.query]);
+  }, [router.query.id]);
 
   // useEffect(() => {
   //   (async () => {
@@ -149,18 +148,35 @@ const Desk: NextPage = () => {
   const handleOrderUpdate = (result: DropResult) => {
     if (!result.destination) return;
 
-    const destinationId = parseInt(result.destination.droppableId);
-    const sourceId = parseInt(result.source.droppableId);
+    const { droppableId: destinationDroppableId, index: destinationIndex } = result.destination;
+    const { droppableId: sourceDroppableId, index: sourceIndex } = result.source;
 
-    const destIdx = columns.findIndex(column => column.id === destinationId);
-    const sourceIdx = columns.findIndex(column => column.id === sourceId);
+    const destinationColumnIdx = columns.findIndex(column => column.id === +destinationDroppableId);
+    const sourceColumnIdx = columns.findIndex(column => column.id === +sourceDroppableId);
 
-    // const destIdx = columns.findIndex(column => column === destColumn[0]);
-    // const sourceIdx = columns.findIndex(column => column === sourceColumn[0]);
+    let newColumns = JSON.parse(JSON.stringify(columns));
+    const [removedSort] = newColumns[sourceColumnIdx].cards.splice(sourceIndex, 1);
+    newColumns[destinationColumnIdx].cards.splice(destinationIndex, 0, removedSort);
 
-    const [removedSort] = columns[sourceIdx].cards.splice(result.source.index, 1);
+    setColumns(newColumns);
 
-    columns[destIdx].cards.splice(result.destination.index, 0, removedSort);
+    /* ----------------------------------------------------------------------------------- */
+    const MIN_RANGE = 0;
+    const MAX_RANGE = 1_000_000;
+
+    const isCardFirst = destinationIndex === 0;
+    const isCardLast =
+      destinationIndex === columns.find(column => column.id === +destinationDroppableId)!.cards.length - 1;
+
+    const nextNumber = isCardLast
+      ? MAX_RANGE
+      : columns.find(column => column.id === +destinationDroppableId)!.cards[destinationIndex + 1].number;
+    const prevNumber = isCardFirst
+      ? MIN_RANGE
+      : columns.find(column => column.id === +destinationDroppableId)!.cards[destinationIndex].number;
+
+    const newNumber = Math.round(Math.random() * (nextNumber - prevNumber) + prevNumber);
+    console.log(newNumber);
   };
 
   return (
