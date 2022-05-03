@@ -2,7 +2,7 @@ import { NextPage } from 'next';
 import { Layout } from '../../components/Layout';
 import s from '../../styles/desk.module.scss';
 import BtnIcon from '../../assets/icons/plus.svg';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -13,8 +13,11 @@ import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautif
 import { createColumn, getColumns } from '../../api/columns';
 import useLogger from '../../hooks/useLogger';
 import { useRouter } from 'next/router';
-import { createCard, getCardById, getCards } from '../../api/cards';
+import { createCard, getCardById, getCards, updateCardNumber } from '../../api/cards';
 import { CardInterface } from '../../interfaces/card';
+
+const MIN_RANGE = 0;
+const MAX_RANGE = 1_000_000;
 
 const Desk: NextPage = () => {
   const [isCreateColumn, setIsCreateColumn] = useState<boolean>(false);
@@ -71,6 +74,7 @@ const Desk: NextPage = () => {
 
   const handleAddNewColumn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     const prevState = columns;
 
     try {
@@ -94,8 +98,16 @@ const Desk: NextPage = () => {
   const handleCreateCard = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log(columns);
-    const currentColumnIdx = columns.findIndex(column => column.id === +updateColumnId);
-    const cardsLength = columns[currentColumnIdx].cards.length;
+    let prevNumber = MIN_RANGE;
+
+    const columnIdx = columns.findIndex(column => column.id === +updateColumnId);
+
+    const amount = columns[columnIdx].cards.length;
+    if (amount !== 0) {
+      prevNumber = columns[columnIdx].cards[amount - 1].number;
+    }
+
+    const currentNumber = Math.round(Math.random() * (MAX_RANGE - prevNumber) + prevNumber);
 
     const prevState = columns;
     try {
@@ -103,25 +115,15 @@ const Desk: NextPage = () => {
         columnId: +updateColumnId,
         userId: 1,
         title: cardName,
-        number: cardsLength + 1,
+        number: currentNumber,
       });
-      console.log(data);
 
       setColumns(prev =>
         prev.map(column =>
           column.id === +updateColumnId
             ? {
                 ...column,
-                cards: [
-                  ...column.cards,
-                  data,
-                  // {
-                  //   id: Date.now(),
-                  //   title: cardName,
-                  //   columnId: +updateColumnId,
-                  //   number: cardsLength + 1,
-                  // },
-                ],
+                cards: [...column.cards, data],
               }
             : column
         )
@@ -133,8 +135,6 @@ const Desk: NextPage = () => {
     }
   };
 
-  // console.log(columns);
-
   const handleCardOpen = (e: React.MouseEvent<HTMLElement>) => {
     const { id } = e.currentTarget.dataset;
     if (id) setOpenCardId(+id);
@@ -145,38 +145,79 @@ const Desk: NextPage = () => {
     setIsCardModalOpen(false);
   }, []);
 
-  const handleOrderUpdate = (result: DropResult) => {
-    if (!result.destination) return;
+  const handleOrderUpdate = async (result: DropResult) => {
+    try {
+      if (!result.destination) return;
 
-    const { droppableId: destinationDroppableId, index: destinationIndex } = result.destination;
-    const { droppableId: sourceDroppableId, index: sourceIndex } = result.source;
+      let newNumber;
+      let isCardFirst;
+      let isCardLast;
+      let nextNumber;
+      let prevNumber;
 
-    const destinationColumnIdx = columns.findIndex(column => column.id === +destinationDroppableId);
-    const sourceColumnIdx = columns.findIndex(column => column.id === +sourceDroppableId);
+      const { droppableId: destinationDroppableId, index: destinationIndex } = result.destination;
+      const { droppableId: sourceDroppableId, index: sourceIndex } = result.source;
 
-    let newColumns = JSON.parse(JSON.stringify(columns));
-    const [removedSort] = newColumns[sourceColumnIdx].cards.splice(sourceIndex, 1);
-    newColumns[destinationColumnIdx].cards.splice(destinationIndex, 0, removedSort);
+      const destinationColumnIdx = columns.findIndex(column => column.id === +destinationDroppableId);
+      const sourceColumnIdx = columns.findIndex(column => column.id === +sourceDroppableId);
 
-    setColumns(newColumns);
+      isCardFirst = destinationIndex === 0;
 
-    /* ----------------------------------------------------------------------------------- */
-    const MIN_RANGE = 0;
-    const MAX_RANGE = 1_000_000;
+      if (destinationDroppableId === sourceDroppableId) {
+        isCardLast =
+          destinationIndex === columns.find(column => column.id === +destinationDroppableId)!.cards.length - 1;
+        if (destinationIndex > sourceIndex) {
+          nextNumber = isCardLast
+            ? MAX_RANGE
+            : columns.find(column => column.id === +destinationDroppableId)!.cards[destinationIndex + 1].number;
+          prevNumber = isCardFirst
+            ? MIN_RANGE
+            : columns.find(column => column.id === +destinationDroppableId)!.cards[destinationIndex].number;
 
-    const isCardFirst = destinationIndex === 0;
-    const isCardLast =
-      destinationIndex === columns.find(column => column.id === +destinationDroppableId)!.cards.length - 1;
+          newNumber = Math.round(Math.random() * (nextNumber - prevNumber) + prevNumber);
+        } else {
+          nextNumber = isCardLast
+            ? MAX_RANGE
+            : columns.find(column => column.id === +destinationDroppableId)!.cards[destinationIndex].number;
+          prevNumber = isCardFirst
+            ? MIN_RANGE
+            : columns.find(column => column.id === +destinationDroppableId)!.cards[destinationIndex - 1].number;
 
-    const nextNumber = isCardLast
-      ? MAX_RANGE
-      : columns.find(column => column.id === +destinationDroppableId)!.cards[destinationIndex + 1].number;
-    const prevNumber = isCardFirst
-      ? MIN_RANGE
-      : columns.find(column => column.id === +destinationDroppableId)!.cards[destinationIndex].number;
+          newNumber = Math.round(Math.random() * (nextNumber - prevNumber) + prevNumber);
+        }
 
-    const newNumber = Math.round(Math.random() * (nextNumber - prevNumber) + prevNumber);
-    console.log(newNumber);
+        console.log(prevNumber, nextNumber);
+      } else {
+        if (columns[destinationColumnIdx].cards.length === 0) {
+          newNumber = Math.round(Math.random() * (MAX_RANGE - MIN_RANGE) + MIN_RANGE);
+        } else {
+          isCardLast = destinationIndex === columns.find(column => column.id === +destinationDroppableId)!.cards.length;
+
+          nextNumber = isCardLast
+            ? MAX_RANGE
+            : columns.find(column => column.id === +destinationDroppableId)!.cards[destinationIndex].number;
+          prevNumber = isCardFirst
+            ? MIN_RANGE
+            : columns.find(column => column.id === +destinationDroppableId)!.cards[destinationIndex - 1].number;
+
+          newNumber = Math.round(Math.random() * (nextNumber - prevNumber) + prevNumber);
+        }
+      }
+
+      let newColumns: DeskColumn[] = JSON.parse(JSON.stringify(columns));
+      const [removedSort] = newColumns[sourceColumnIdx].cards.splice(sourceIndex, 1);
+      newColumns[destinationColumnIdx].cards.splice(destinationIndex, 0, { ...removedSort, number: newNumber });
+
+      setColumns(newColumns);
+      console.log(newColumns);
+      await updateCardNumber({
+        id: newColumns[destinationColumnIdx].cards[destinationIndex].id,
+        number: newNumber,
+        columnId: destinationColumnIdx + 1,
+      });
+    } catch (err) {
+      logger.error(err);
+    }
   };
 
   return (

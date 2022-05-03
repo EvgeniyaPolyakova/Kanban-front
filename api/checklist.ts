@@ -15,3 +15,10 @@ export const createTask = (data: ChecklistDto): Promise<AxiosResponse<CardCheckl
 export const getTasks = (cardId: number) => {
   return makeRequest.get(`/checklists/get-tasks/${cardId}`);
 };
+
+export const toggleComplited = (checlistData: { id: number; isChecked: boolean }) => {
+  return makeRequest.post('/checklists/update-complited', {
+    id: checlistData.id,
+    isChecked: checlistData.isChecked,
+  });
+};

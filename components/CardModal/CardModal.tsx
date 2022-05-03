@@ -12,11 +12,20 @@ import { getISODate } from '../../helpers/date';
 import Comments from '../Comments';
 import CommentsIcon from '../../assets/icons/comment.svg';
 import CrossIcon from '../../assets/icons/cross.svg';
+import PeopleIcon from '../../assets/icons/people.svg';
+import PlusIcon from '../../assets/icons/plus-icon.svg';
 import useLogger from '../../hooks/useLogger';
-import { getCardById, saveDescription, saveTitle } from '../../api/cards';
-import { CardInterface } from '../../interfaces/card';
+import { getCardById, saveDeadline, saveDescription, saveTitle, toggleIsCompleted } from '../../api/cards';
+import { CardFiles, CardInterface } from '../../interfaces/card';
 import Button from '../Button';
 import { CardChecklist } from '../../interfaces/checklist';
+import CheckedCheckbox from '../../assets/icons/checkbox.svg';
+import Checkbox from '../../assets/icons/square.svg';
+import cn from 'classnames';
+import { uploadFiles } from '../../api/files';
+import Avatar from '../Avatar';
+import { getAllUser } from '../../api/user';
+import { User } from '../../interfaces/user';
 
 interface Props {
   handleOutsideClick: () => void;
@@ -32,9 +41,13 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
   const [isChecklistAdd, setIsChecklistAdd] = useState<boolean>(false);
   const [isFileAdd, setIsFileAdd] = useState<boolean>(false);
   const [isDateAdd, setIsDateAdd] = useState<boolean>(false);
-  const [deadline, setDeadline] = useState<string>(getISODate(new Date()));
-  const [fileName, setFileName] = useState<string>('');
+  const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [deadline, setDeadline] = useState<string>('');
+  // const [fileName, setFileName] = useState<string>('');
   const [checklist, setChecklist] = useState<CardChecklist[]>([]);
+  const [isUsersListOpen, setIsUsersListOpen] = useState<boolean>(false);
+  const [cardFiles, setCardFiles] = useState<CardFiles[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const logger = useLogger();
 
   useEffect(() => {
@@ -46,15 +59,14 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
         setTitle(data.title);
         if (data.description) setDescription(data.description);
         if (data.checklists) setChecklist(data.checklists);
+        if (data.deadline) setDeadline(getISODate(new Date(data.deadline)));
+        if (data.isComplited) setIsCompleted(data.isComplited);
+        if (data.files) setCardFiles(data.files);
       } catch (err) {
         logger.error(err);
       }
     })();
   }, []);
-
-  // useEffect(() => {
-  //   if (cardData) setTitle(cardData.title);
-  // }, []);
 
   const handleAddChecklistToCard = () => setIsChecklistAdd(true);
 
@@ -62,14 +74,41 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
 
   const handleAddDateToCard = () => setIsDateAdd(true);
 
-  const handleSetDeadline = (e: React.ChangeEvent<HTMLInputElement>) => setDeadline(e.target.value);
+  const handleCompleted = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const prevState = isCompleted;
+    try {
+      setIsCompleted(prev => !prev);
+      await toggleIsCompleted({ id: id, isComplited: !isCompleted });
+    } catch (err) {
+      setIsCompleted(prevState);
+      logger.error(err);
+    }
+  };
 
-  const handleUploadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSetDeadline = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setDeadline(e.target.value);
+      await saveDeadline({ id: id, deadline: new Date(e.target.value) });
+    } catch (err) {
+      logger.error(err);
+      setDeadline('');
+    }
+  };
+
+  const handleUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const prevState = cardFiles;
     const { files } = e.target;
+    const formData = new FormData();
     if (files) {
-      setFileName(files[0].name);
-      // let formData = new FormData();
-      // formData.append("file", files[0]);
+      try {
+        // setFileName(files[0].name);
+        formData.append('file', files[0]);
+        const { data } = await uploadFiles(id, formData);
+        setCardFiles(prev => [...prev, data]);
+      } catch (err) {
+        setCardFiles(prevState);
+        logger.error(err);
+      }
     }
   };
 
@@ -104,6 +143,26 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
     setIsDescriptionFocus(false);
   };
 
+  const handleOpenUsersList = async () => {
+    try {
+      const { data } = await getAllUser();
+      // console.log(data);
+      setUsers(data);
+    } catch (err) {
+      logger.error(err);
+    }
+
+    setIsUsersListOpen(true);
+  };
+
+  const handleCloseUsersList = () => {
+    setIsUsersListOpen(false);
+  };
+
+  const handleSelectExecutor = () => {
+    console.log('select');
+  };
+
   const handleAddDescription = async () => {
     console.log('save');
 
@@ -115,7 +174,7 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
     }
   };
 
-  console.log('checklist', checklist);
+  console.log(cardFiles);
 
   return (
     <>
@@ -138,9 +197,66 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
                       onChange={handleChangeTitle}
                     />
                   </div>
-                  {isDateAdd && (
-                    <input type="date" className={s.datePicker} value={deadline} onChange={handleSetDeadline} />
-                  )}
+                  <div className={s.executorDateWrap}>
+                    <div className={s.executorWrap}>
+                      <p className={s.deadlineTitle}>Исполнители</p>
+                      <div className={s.executorContainer}>
+                        <Avatar name="Иван Иванов" />
+                        <Avatar name="Иван Иванов" />
+                        <button className={s.addExecutorBtn} onClick={handleOpenUsersList}>
+                          <PlusIcon />
+                        </button>
+                        {isUsersListOpen && (
+                          <div className={s.usersList}>
+                            <p className={s.usersListTitle}>Участники</p>
+                            <div className={s.usersListSeparator}></div>
+                            <ul className={s.users}>
+                              {users.map(user => (
+                                <li key={user.id}>
+                                  <div onClick={handleSelectExecutor}>
+                                    {user.name} {user.surname}
+                                  </div>
+                                </li>
+                              ))}
+                              {/* <li>Иван Иванов</li>
+                              <li>Евгения Полякова</li>
+                              <li>Иван Иванов</li>
+                              <li>Евгения Полякова</li>
+                              <li>Иван Иванов</li>
+                              <li>Евгения Полякова</li>
+                              <li>Иван Иванов</li>
+                              <li>Евгения Полякова</li> */}
+                            </ul>
+                            <button className={s.closeUsersListBtn} onClick={handleCloseUsersList}>
+                              <CrossIcon />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {(isDateAdd || deadline.trim()) && (
+                      <div className={s.deadlineWrap}>
+                        <p className={s.deadlineTitle}>Срок исполнения</p>
+                        <div className={s.datePickerWrapper}>
+                          <label className={s.checkboxTitle}>
+                            <input
+                              type="checkbox"
+                              className={s.checkbox}
+                              onChange={handleCompleted}
+                              checked={isCompleted}
+                            />
+                            {isCompleted ? <CheckedCheckbox /> : <Checkbox />}
+                          </label>
+                          <input
+                            type="date"
+                            className={cn(s.datePicker, { [s.completedDeadline]: isCompleted })}
+                            value={deadline}
+                            onChange={handleSetDeadline}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <div className={s.titleWrap}>
                     <DescriptionIcon />
                     <p className={s.title}>Описание</p>
@@ -153,7 +269,7 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
                       value={description}
                       onChange={handleChangeDescription}
                       rows={3}
-                      placeholder={'Добавить описание...'}
+                      placeholder={'Добавьте описание...'}
                       onClick={handleDescriptionFocus}
                     />
                     {isDescriptionFocus && (
@@ -178,16 +294,27 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
                     </>
                   )}
 
-                  {isFileAdd && (
+                  {(isFileAdd || cardFiles.length > 0) && (
                     <>
                       <div className={s.titleWrap}>
                         <FileIcon />
                         <p className={s.title}>Файлы</p>
                       </div>
                       <ul className={s.filesList}>
-                        <li>{fileName}</li>
+                        {cardFiles.map(file => (
+                          <li key={file.id}>
+                            {file.binaryData.trim() && (
+                              <a
+                                download={file.fileName}
+                                href={`http://localhost:3001/${file.binaryData}`}
+                                // target="_blank"
+                              >
+                                {file.fileName}
+                              </a>
+                            )}
+                          </li>
+                        ))}
                       </ul>
-
                       <label className={s.labelInputFile}>
                         <AddChecklistIcon />
                         <input type="file" className={s.inputFile} onChange={handleUploadFile} />
@@ -210,18 +337,30 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
                     Добавить на карточку
                   </div>
                   <div className={s.btnsWrap}>
-                    <button className={s.addButton} onClick={handleAddChecklistToCard}>
-                      <ChecklistIcon />
-                      Чек-лист
-                    </button>
-                    <button className={s.addButton} onClick={handleAddFileToCard}>
-                      <FileIcon />
-                      Файл
-                    </button>
-                    <button className={s.addButton} onClick={handleAddDateToCard}>
-                      <ClockIcon />
-                      Дату
-                    </button>
+                    {!isChecklistAdd && !(checklist.length > 0) && (
+                      <button className={s.addButton} onClick={handleAddChecklistToCard}>
+                        <ChecklistIcon />
+                        Чек-лист
+                      </button>
+                    )}
+                    {!isFileAdd && !(cardFiles.length > 0) && (
+                      <button className={s.addButton} onClick={handleAddFileToCard}>
+                        <FileIcon />
+                        Файл
+                      </button>
+                    )}
+                    {!isDateAdd && !deadline.trim() && (
+                      <button className={s.addButton} onClick={handleAddDateToCard}>
+                        <ClockIcon />
+                        Дату
+                      </button>
+                    )}
+                    {!isDateAdd && !deadline.trim() && (
+                      <button className={s.addButton} onClick={handleAddDateToCard}>
+                        <PeopleIcon />
+                        Исполнителей
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

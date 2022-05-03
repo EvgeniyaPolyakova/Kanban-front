@@ -7,30 +7,12 @@ import Button from '../Button';
 import s from './Checklist.module.scss';
 import { CardChecklist } from '../../interfaces/checklist';
 import useLogger from '../../hooks/useLogger';
-import { createTask } from '../../api/checklist';
+import { createTask, toggleComplited } from '../../api/checklist';
 
 interface Props {
   cardId: number;
   data: CardChecklist[];
 }
-
-// const ChecklistArray: Checklist[] = [
-//   {
-//     id: 1,
-//     task: 'Задача 1',
-//     isChecked: true,
-//   },
-//   {
-//     id: 2,
-//     task: 'Задача 2',
-//     completed: false,
-//   },
-//   {
-//     id: 3,
-//     task: 'Задача 3',
-//     completed: true,
-//   },
-// ];
 
 const Checklist = ({ cardId, data }: Props) => {
   const [newChecklistItem, setNewChecklistItem] = useState<string>('');
@@ -46,29 +28,36 @@ const Checklist = ({ cardId, data }: Props) => {
     return Math.floor((completedTasksLength / tasksLength) * 100);
   }, [checklistTasks]);
 
-  const handleChecked = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChecked = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id } = e.target.dataset;
+    const prevState = checklistTasks;
 
-    if (id) {
-      setChecklistsTask(prev => prev.map(task => (task.id === +id ? { ...task, completed: !task.isChecked } : task)));
-    }
-  };
-
-  const handleAddNewItem = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
     try {
-      const data = await createTask({ task: newChecklistItem, isChecked: false, cardId: cardId });
-      console.log('data', data);
-
-      // setChecklistsTask(prev => [...prev, data]);
-      setNewChecklistItem('');
-      setIsOpenCreateForm(false);
+      if (id) {
+        const isTaskComplited = checklistTasks.find(task => task.id === +id)?.isChecked;
+        await toggleComplited({ id: +id, isChecked: !isTaskComplited });
+        setChecklistsTask(prev => prev.map(task => (task.id === +id ? { ...task, isChecked: !task.isChecked } : task)));
+      }
     } catch (err) {
+      setChecklistsTask(prevState);
       logger.error(err);
     }
   };
 
-  console.log(checklistTasks);
+  const handleAddNewItem = async (e: React.FormEvent<HTMLFormElement>) => {
+    const prevState = checklistTasks;
+    e.preventDefault();
+    try {
+      const { data } = await createTask({ task: newChecklistItem, isChecked: false, cardId: cardId });
+
+      setChecklistsTask(prev => [...prev, data]);
+      setNewChecklistItem('');
+      setIsOpenCreateForm(false);
+    } catch (err) {
+      setChecklistsTask(prevState);
+      logger.error(err);
+    }
+  };
 
   const handleChangeNewChecklistItem = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewChecklistItem(e.target.value);

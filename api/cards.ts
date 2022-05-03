@@ -23,6 +23,14 @@ export const getCardById = (cardId: number): Promise<AxiosResponse<CardInterface
   return makeRequest.get(`/cards/get-card/${cardId}`);
 };
 
+export const updateCardNumber = (cardData: { id: number; number: number; columnId: number }) => {
+  return makeRequest.post('/cards/update-number', {
+    id: cardData.id,
+    number: cardData.number,
+    columnId: cardData.columnId,
+  });
+};
+
 export const saveTitle = (cardTitle: { id: number; title: string }) => {
   return makeRequest.post('/cards/save-title', {
     id: cardTitle.id,
@@ -34,5 +42,19 @@ export const saveDescription = (cardDescription: { id: number; description: stri
   return makeRequest.post('/cards/save-description', {
     id: cardDescription.id,
     description: cardDescription.description,
+  });
+};
+
+export const saveDeadline = (cardData: { id: number; deadline: Date }) => {
+  return makeRequest.post('/cards/save-deadline', {
+    id: cardData.id,
+    deadline: cardData.deadline,
+  });
+};
+
+export const toggleIsCompleted = (cardData: { id: number; isComplited: boolean }) => {
+  return makeRequest.post('/cards/set-card-completed', {
+    id: cardData.id,
+    isComplited: cardData.isComplited,
   });
 };

@@ -57,7 +57,13 @@ const Comments = () => {
       <form className={s.sendForm} onSubmit={handleSendMessage}>
         <Avatar name={'Евгения Полякова'} />
         <div>
-          <textarea className={s.textarea} rows={3} onChange={handleChangeComment} value={commentText} />
+          <textarea
+            className={s.textarea}
+            rows={3}
+            onChange={handleChangeComment}
+            placeholder="Напишите комментарий..."
+            value={commentText}
+          />
           <Button type="submit">Отправить</Button>
         </div>
       </form>

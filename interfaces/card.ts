@@ -7,10 +7,11 @@ export interface CardInterface {
   number: number;
   title: string;
   description?: string | null;
-  deadline?: Date | null;
+  deadline?: string | null;
+  isComplited?: boolean | null;
   checklists?: CardChecklist[];
   comments?: Comment[];
-  files?: File[];
+  files?: CardFiles[];
 }
 
 // export interface CardChecklist {
@@ -26,9 +27,9 @@ export interface Comment {
   text: string;
 }
 
-export interface File {
+export interface CardFiles {
   id: number;
   fileName: string;
-  binaryData: BinaryData;
+  binaryData: string;
   cardId: number;
 }
