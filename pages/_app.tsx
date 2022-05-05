@@ -1,14 +1,17 @@
 import '../styles/base.scss';
 import type { AppProps } from 'next/app';
+import { UserContextProvider } from '../contexts/UserContext';
+import { useState } from 'react';
+import { User } from '../interfaces/user';
 
 function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />;
+  const [user, setUser] = useState<User | null>(null);
 
-  //Добавить модалку
-  //В компоненте модалки Контекст
-
-  //При открытии модалки роутер push
-  //В модалке авторизации эффект
+  return (
+    <UserContextProvider value={{ user, setUser }}>
+      <Component {...pageProps} />
+    </UserContextProvider>
+  );
 }
 
 export default MyApp;
