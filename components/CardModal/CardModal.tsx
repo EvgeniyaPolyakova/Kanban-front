@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import OutsideClickHandler from 'react-outside-click-handler';
 import s from './CardModal.module.scss';
 import TitleIcon from '../../assets/icons/card-title.svg';
@@ -18,55 +18,69 @@ import useLogger from '../../hooks/useLogger';
 import { getCardById, saveDeadline, saveDescription, saveTitle, toggleIsCompleted } from '../../api/cards';
 import { CardFiles, CardInterface } from '../../interfaces/card';
 import Button from '../Button';
-import { CardChecklist } from '../../interfaces/checklist';
+// import { CardChecklist } from '../../interfaces/checklist';
 import CheckedCheckbox from '../../assets/icons/checkbox.svg';
 import Checkbox from '../../assets/icons/square.svg';
 import cn from 'classnames';
 import { uploadFiles } from '../../api/files';
 import Avatar from '../Avatar';
-import { getAllUser } from '../../api/user';
+import { getAllUser, getExecutorsList, saveExecutor } from '../../api/user';
 import { User } from '../../interfaces/user';
+import { useRouter } from 'next/router';
+import { isEqual } from 'lodash';
 
 interface Props {
   handleOutsideClick: () => void;
   id: number;
-  cardData: CardInterface | null;
+  card: CardInterface;
+  updateCard: (columnId: number, cardId: number, field: keyof CardInterface, value: any) => void;
 }
 
-const CardModal = ({ handleOutsideClick, id }: Props) => {
-  const [cardData, setCardData] = useState<CardInterface | null>(null);
-  const [title, setTitle] = useState<string>('');
+const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
+  console.log(card);
+
+  // const [cardData, setCardData] = useState<CardInterface | null>(null);
+  const [title, setTitle] = useState<string>(card.title);
   const [isDescriptionFocus, setIsDescriptionFocus] = useState<boolean>(false);
-  const [description, setDescription] = useState<string>('');
+  const [description, setDescription] = useState<string>(card.description || '');
   const [isChecklistAdd, setIsChecklistAdd] = useState<boolean>(false);
   const [isFileAdd, setIsFileAdd] = useState<boolean>(false);
   const [isDateAdd, setIsDateAdd] = useState<boolean>(false);
+  const [isExecutorsAdd, setIsExecutorsAdd] = useState<boolean>(false);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [deadline, setDeadline] = useState<string>('');
-  // const [fileName, setFileName] = useState<string>('');
-  const [checklist, setChecklist] = useState<CardChecklist[]>([]);
+  // const [checklist, setChecklist] = useState<CardChecklist[]>(card.checklists || []);
   const [isUsersListOpen, setIsUsersListOpen] = useState<boolean>(false);
-  const [cardFiles, setCardFiles] = useState<CardFiles[]>([]);
+  // const [cardFiles, setCardFiles] = useState<CardFiles[]>(card.files || []);
   const [users, setUsers] = useState<User[]>([]);
+  const [executors, setExecutors] = useState<User[]>([]);
   const logger = useLogger();
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
       try {
         const { data } = await getCardById(id);
+        const { data: executorsList } = await getExecutorsList(id);
 
-        setCardData(data);
-        setTitle(data.title);
-        if (data.description) setDescription(data.description);
-        if (data.checklists) setChecklist(data.checklists);
+        // setCardData(data);
+        // setTitle(data.title);
+        // if (data.description) setDescription(data.description);
+        // if (data.checklists) setChecklist(data.checklists);
         if (data.deadline) setDeadline(getISODate(new Date(data.deadline)));
         if (data.isComplited) setIsCompleted(data.isComplited);
-        if (data.files) setCardFiles(data.files);
+        // if (data.files) setCardFiles(data.files);
+        setExecutors(executorsList);
       } catch (err) {
         logger.error(err);
       }
     })();
   }, []);
+
+  const sortedUsers = useMemo(() => {
+    const availableUsers = users.filter(user => executors.every(executor => !isEqual(user, executor)));
+    return availableUsers;
+  }, [users, executors]);
 
   const handleAddChecklistToCard = () => setIsChecklistAdd(true);
 
@@ -96,7 +110,7 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
   };
 
   const handleUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const prevState = cardFiles;
+    // const prevState = cardFiles;
     const { files } = e.target;
     const formData = new FormData();
     if (files) {
@@ -104,9 +118,13 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
         // setFileName(files[0].name);
         formData.append('file', files[0]);
         const { data } = await uploadFiles(id, formData);
-        setCardFiles(prev => [...prev, data]);
+        console.log('before');
+
+        updateCard(card.columnId, card.id, 'files', data);
+        console.log('after');
+        // setCardFiles(prev => [...prev, data]);
       } catch (err) {
-        setCardFiles(prevState);
+        // updateCard(card.columnId, card.id, 'files',);
         logger.error(err);
       }
     }
@@ -118,7 +136,8 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
 
   const handleSaveTitle = async () => {
     try {
-      await saveTitle({ id: id, title: title });
+      const { data } = await saveTitle({ id: id, title: title });
+      updateCard(card.columnId, card.id, 'title', data.title);
     } catch (err) {
       logger.error(err);
     }
@@ -155,12 +174,30 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
     setIsUsersListOpen(true);
   };
 
+  const handleAddExecutorToCard = () => {
+    setIsExecutorsAdd(true);
+  };
+
   const handleCloseUsersList = () => {
     setIsUsersListOpen(false);
   };
 
-  const handleSelectExecutor = () => {
-    console.log('select');
+  const handleSelectExecutor = async (e: React.MouseEvent<HTMLElement>) => {
+    const prevState = executors;
+    try {
+      const userId = e.currentTarget.dataset.id;
+      const { data } = await saveExecutor({ cardId: id, deskId: +router.query.id!, userId: +userId! });
+      setExecutors(prev => [...prev, data]);
+
+      // const userIdx = users.findIndex(user => user.id === data.id);
+      // console.log(userIdx);
+
+      const sortUsers = users.filter(user => user.id !== data.id);
+      setUsers(sortUsers);
+    } catch (err) {
+      setExecutors(prevState);
+      logger.error(err);
+    }
   };
 
   const handleAddDescription = async () => {
@@ -174,11 +211,9 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
     }
   };
 
-  console.log(cardFiles);
-
   return (
     <>
-      {cardData && (
+      {card && (
         <div className={s.modalWrap}>
           <div className={s.modalBackDrop} />
           <div className={s.modalBody}>
@@ -197,43 +232,48 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
                       onChange={handleChangeTitle}
                     />
                   </div>
+
                   <div className={s.executorDateWrap}>
-                    <div className={s.executorWrap}>
-                      <p className={s.deadlineTitle}>Исполнители</p>
-                      <div className={s.executorContainer}>
-                        <Avatar name="Иван Иванов" />
-                        <Avatar name="Иван Иванов" />
-                        <button className={s.addExecutorBtn} onClick={handleOpenUsersList}>
-                          <PlusIcon />
-                        </button>
-                        {isUsersListOpen && (
-                          <div className={s.usersList}>
-                            <p className={s.usersListTitle}>Участники</p>
-                            <div className={s.usersListSeparator}></div>
-                            <ul className={s.users}>
-                              {users.map(user => (
-                                <li key={user.id}>
-                                  <div onClick={handleSelectExecutor}>
-                                    {user.name} {user.surname}
-                                  </div>
-                                </li>
-                              ))}
-                              {/* <li>Иван Иванов</li>
-                              <li>Евгения Полякова</li>
-                              <li>Иван Иванов</li>
-                              <li>Евгения Полякова</li>
-                              <li>Иван Иванов</li>
-                              <li>Евгения Полякова</li>
-                              <li>Иван Иванов</li>
-                              <li>Евгения Полякова</li> */}
-                            </ul>
-                            <button className={s.closeUsersListBtn} onClick={handleCloseUsersList}>
-                              <CrossIcon />
+                    {(executors.length > 0 || isExecutorsAdd) && (
+                      <>
+                        <div className={s.executorWrap}>
+                          <p className={s.deadlineTitle}>Исполнители</p>
+                          <div className={s.executorContainer}>
+                            {executors.map(executor => (
+                              <Avatar name={`${executor.name} ${executor.surname}`} key={executor.id} />
+                            ))}
+                            {/* // <Avatar name="Иван Иванов" />
+                        // <Avatar name="Иван Иванов" /> */}
+                            <button className={s.addExecutorBtn} onClick={handleOpenUsersList}>
+                              <PlusIcon />
                             </button>
+                            {isUsersListOpen && (
+                              <div className={s.usersList}>
+                                <p className={s.usersListTitle}>Участники</p>
+                                <div className={s.usersListSeparator}></div>
+                                <ul className={s.users}>
+                                  {sortedUsers.length === 0 ? (
+                                    <p>Участники не найдены</p>
+                                  ) : (
+                                    sortedUsers.map(user => (
+                                      <li key={user.id}>
+                                        <div onClick={handleSelectExecutor} data-id={user.id}>
+                                          {user.name} {user.surname}
+                                        </div>
+                                      </li>
+                                    ))
+                                  )}
+                                </ul>
+                                <button className={s.closeUsersListBtn} onClick={handleCloseUsersList}>
+                                  <CrossIcon />
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </div>
+                        </div>
+                      </>
+                    )}
+
                     {(isDateAdd || deadline.trim()) && (
                       <div className={s.deadlineWrap}>
                         <p className={s.deadlineTitle}>Срок исполнения</p>
@@ -284,24 +324,24 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
                     )}
                   </div>
 
-                  {(isChecklistAdd || checklist.length > 0) && (
+                  {(isChecklistAdd || card.checklists.length > 0) && (
                     <>
                       <div className={s.titleWrap}>
                         <ChecklistIcon />
                         <p className={s.title}>Чек-лист</p>
                       </div>
-                      <Checklist cardId={id} data={checklist} />
+                      <Checklist cardId={id} data={card.checklists} updateCard={updateCard} columnId={card.columnId} />
                     </>
                   )}
 
-                  {(isFileAdd || cardFiles.length > 0) && (
+                  {(isFileAdd || card.files.length > 0) && (
                     <>
                       <div className={s.titleWrap}>
                         <FileIcon />
                         <p className={s.title}>Файлы</p>
                       </div>
                       <ul className={s.filesList}>
-                        {cardFiles.map(file => (
+                        {card.files.map(file => (
                           <li key={file.id}>
                             {file.binaryData.trim() && (
                               <a
@@ -337,13 +377,13 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
                     Добавить на карточку
                   </div>
                   <div className={s.btnsWrap}>
-                    {!isChecklistAdd && !(checklist.length > 0) && (
+                    {!isChecklistAdd && !(card.checklists.length > 0) && (
                       <button className={s.addButton} onClick={handleAddChecklistToCard}>
                         <ChecklistIcon />
                         Чек-лист
                       </button>
                     )}
-                    {!isFileAdd && !(cardFiles.length > 0) && (
+                    {!isFileAdd && !(card.files.length > 0) && (
                       <button className={s.addButton} onClick={handleAddFileToCard}>
                         <FileIcon />
                         Файл
@@ -355,8 +395,8 @@ const CardModal = ({ handleOutsideClick, id }: Props) => {
                         Дату
                       </button>
                     )}
-                    {!isDateAdd && !deadline.trim() && (
-                      <button className={s.addButton} onClick={handleAddDateToCard}>
+                    {!isExecutorsAdd && !(executors.length > 0) && (
+                      <button className={s.addButton} onClick={handleAddExecutorToCard}>
                         <PeopleIcon />
                         Исполнителей
                       </button>

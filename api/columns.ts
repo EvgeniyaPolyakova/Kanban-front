@@ -11,6 +11,6 @@ export const createColumn = (data: CreateColumnDto): Promise<AxiosResponse<DeskC
   });
 };
 
-export const getColumns = (deskId: number) => {
+export const getColumns = (deskId: number): Promise<AxiosResponse<DeskColumn[]>> => {
   return makeRequest.get(`/columns/get-columns/${deskId}`);
 };

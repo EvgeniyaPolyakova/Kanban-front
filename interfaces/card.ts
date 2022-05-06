@@ -6,19 +6,13 @@ export interface CardInterface {
   userId?: number;
   number: number;
   title: string;
-  description?: string | null;
+  description: string;
   deadline?: string | null;
-  isComplited?: boolean | null;
-  checklists?: CardChecklist[];
+  isComplited: boolean;
+  checklists: CardChecklist[];
   comments?: Comment[];
-  files?: CardFiles[];
+  files: CardFiles[];
 }
-
-// export interface CardChecklist {
-//   id: number;
-//   task: string;
-//   completed: boolean;
-// }
 
 export interface Comment {
   id: number;

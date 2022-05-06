@@ -8,13 +8,16 @@ import s from './Checklist.module.scss';
 import { CardChecklist } from '../../interfaces/checklist';
 import useLogger from '../../hooks/useLogger';
 import { createTask, toggleComplited } from '../../api/checklist';
+import { CardInterface } from '../../interfaces/card';
 
 interface Props {
   cardId: number;
   data: CardChecklist[];
+  updateCard: (columnId: number, cardId: number, field: keyof CardInterface, value: any) => void;
+  columnId: number;
 }
 
-const Checklist = ({ cardId, data }: Props) => {
+const Checklist = ({ cardId, data, updateCard, columnId }: Props) => {
   const [newChecklistItem, setNewChecklistItem] = useState<string>('');
   const [isOpenCreateForm, setIsOpenCreateForm] = useState<boolean>(false);
   const [checklistTasks, setChecklistsTask] = useState<CardChecklist[]>(data);
@@ -35,7 +38,8 @@ const Checklist = ({ cardId, data }: Props) => {
     try {
       if (id) {
         const isTaskComplited = checklistTasks.find(task => task.id === +id)?.isChecked;
-        await toggleComplited({ id: +id, isChecked: !isTaskComplited });
+        const { data } = await toggleComplited({ id: +id, isChecked: !isTaskComplited });
+
         setChecklistsTask(prev => prev.map(task => (task.id === +id ? { ...task, isChecked: !task.isChecked } : task)));
       }
     } catch (err) {
@@ -49,6 +53,7 @@ const Checklist = ({ cardId, data }: Props) => {
     e.preventDefault();
     try {
       const { data } = await createTask({ task: newChecklistItem, isChecked: false, cardId: cardId });
+      updateCard(columnId, cardId, 'checklists', data);
 
       setChecklistsTask(prev => [...prev, data]);
       setNewChecklistItem('');

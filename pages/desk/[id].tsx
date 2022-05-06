@@ -13,8 +13,9 @@ import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautif
 import { createColumn, getColumns } from '../../api/columns';
 import useLogger from '../../hooks/useLogger';
 import { useRouter } from 'next/router';
-import { createCard, getCardById, getCards, updateCardNumber } from '../../api/cards';
+import { createCard, updateCardNumber } from '../../api/cards';
 import { CardInterface } from '../../interfaces/card';
+import { sortBy } from 'lodash';
 
 const MIN_RANGE = 0;
 const MAX_RANGE = 1_000_000;
@@ -24,35 +25,64 @@ const Desk: NextPage = () => {
   const [updateColumnId, setUpdateColumnId] = useState<string>('');
   const [columns, setColumns] = useState<DeskColumn[]>([]);
   const [cardName, setCardName] = useState<string>('');
-  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [columnName, setColumnName] = useState<string>('');
   const [openCardId, setOpenCardId] = useState<number>(-1);
-  const [cardData, setCardData] = useState<CardInterface | null>(null);
+  const [openCardColumnId, setOpenCardColumnId] = useState<number>(-1);
   const logger = useLogger();
   const router = useRouter();
+
+  const activeCard = useMemo(() => {
+    const columnIdx = columns.findIndex(column => column.id === openCardColumnId);
+    const card = columns[columnIdx]?.cards.find(card => card.id === openCardId);
+    return card;
+  }, [openCardId, openCardColumnId, columns]);
 
   useEffect(() => {
     if (!router.isReady) return;
     (async () => {
       try {
         const { data } = await getColumns(+router.query.id!);
-        setColumns(data);
+
+        const sortedCards = data.map(column => sortBy(column.cards, ['number']));
+
+        setColumns(
+          data.map((data, idx) => {
+            return { ...data, cards: sortedCards[idx] };
+          })
+        );
       } catch (err) {
         logger.error(err);
       }
     })();
   }, [router.query.id]);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       const { data } = await getCardById(openCardId);
-  //       setCardData(data);
-  //     } catch (err) {
-  //       logger.error(err);
-  //     }
-  //   })();
-  // }, [openCardId]);
+  const updateCard = useCallback(
+    (columnId: number, cardId: number, field: keyof CardInterface, value: any) => {
+      setColumns(prevColumnState =>
+        prevColumnState.map(column =>
+          column.id !== columnId
+            ? column
+            : {
+                ...column,
+                cards: column.cards.map(card => {
+                  if (card.id !== cardId) return card;
+                  let newValue;
+                  const oldValue = card[field];
+
+                  if (Array.isArray(oldValue)) {
+                    newValue = [...oldValue, value];
+                  } else {
+                    newValue = value;
+                  }
+
+                  return { ...card, [field]: newValue };
+                }),
+              }
+        )
+      );
+    },
+    [setColumns]
+  );
 
   const handleClickCreate = () => {
     setIsCreateColumn(true);
@@ -137,12 +167,15 @@ const Desk: NextPage = () => {
 
   const handleCardOpen = (e: React.MouseEvent<HTMLElement>) => {
     const { id } = e.currentTarget.dataset;
+    const { columnid } = e.currentTarget.dataset;
+
     if (id) setOpenCardId(+id);
-    setIsCardModalOpen(true);
+    if (columnid) setOpenCardColumnId(+columnid);
   };
 
   const handleCloseCard = useCallback(() => {
-    setIsCardModalOpen(false);
+    setOpenCardColumnId(-1);
+    setOpenCardId(-1);
   }, []);
 
   const handleOrderUpdate = async (result: DropResult) => {
@@ -242,7 +275,15 @@ const Desk: NextPage = () => {
                           <Draggable key={card.id} draggableId={String(card.id)} index={index}>
                             {provided => (
                               <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
-                                <Card data-id={card.id} title={card.title} key={card.id} onClick={handleCardOpen} />
+                                <Card
+                                  filesAmount={card.files.length}
+                                  checklistAmount={card.checklists.length}
+                                  data-id={card.id}
+                                  data-columnid={column.id}
+                                  title={card.title}
+                                  key={card.id}
+                                  onClick={handleCardOpen}
+                                />
                               </div>
                             )}
                           </Draggable>
@@ -299,7 +340,9 @@ const Desk: NextPage = () => {
           )}
         </div>
       </Layout>
-      {isCardModalOpen && <CardModal handleOutsideClick={handleCloseCard} id={openCardId} cardData={cardData} />}
+      {activeCard && (
+        <CardModal handleOutsideClick={handleCloseCard} id={openCardId} card={activeCard} updateCard={updateCard} />
+      )}
     </>
   );
 };

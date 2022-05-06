@@ -1,6 +1,8 @@
+import { AxiosResponse } from 'axios';
+import { CardFiles } from '../interfaces/card';
 import makeRequest from './makeRequest';
 
-export const uploadFiles = (cardId: number, data: FormData) => {
+export const uploadFiles = (cardId: number, data: FormData): Promise<AxiosResponse<CardFiles>> => {
   console.log(data);
 
   return makeRequest.post(`/files/upload/${cardId}`, data, {
