@@ -103,7 +103,7 @@ const Checklist = ({ cardId, data, updateCard, columnId }: Props) => {
       ) : (
         <form onSubmit={handleAddNewItem}>
           <Input value={newChecklistItem} className={s.inputNewItem} onChange={handleChangeNewChecklistItem} />
-          <Button type="submit" className={s.addNewItemBtn}>
+          <Button type="submit" className={s.addNewItemBtn} disabled={!newChecklistItem}>
             Добавить
           </Button>
         </form>

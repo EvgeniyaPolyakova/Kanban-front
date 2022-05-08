@@ -1,61 +1,61 @@
 import Avatar from '../Avatar';
 import s from './Comments.module.scss';
-import { Comment } from '../../interfaces/card';
+import { CardInterface, Comment } from '../../interfaces/card';
 import Button from '../Button';
 import React, { useState } from 'react';
+import { useUser } from '../../hooks/useUser';
+import useLogger from '../../hooks/useLogger';
+import { saveComment } from '../../api/comments';
+import { getISODate } from '../../helpers/date';
 
-const CommentsArray: Comment[] = [
-  {
-    id: 1,
-    author: 'Сергей Григорьев',
-    date: '12.12.2021',
-    text: 'Комментарий',
-  },
-  {
-    id: 2,
-    author: 'Елена Абрамова',
-    date: '13.12.2021',
-    text: 'Комментарий 2',
-  },
-];
+interface Props {
+  cardId: number;
+  columnId: number;
+  updateCard: (columnId: number, cardId: number, field: keyof CardInterface, value: any) => void;
+  data: Comment[];
+}
 
-const Comments = () => {
-  const [comments, setComments] = useState<Comment[]>(CommentsArray);
+const Comments = ({ cardId, columnId, updateCard, data }: Props) => {
+  // const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState<string>('');
+  const { user } = useUser();
+  const logger = useLogger();
 
   const handleChangeComment = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCommentText(e.target.value);
   };
 
-  const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setComments(prev => [
-      ...prev,
-      {
-        id: comments.length + 1,
-        author: 'Евгения Полякова',
-        date: '10.04.2022',
-        text: commentText,
-      },
-    ]);
+    try {
+      if (user) {
+        const { data } = await saveComment({ userId: user.id, cardId: cardId, text: commentText });
+        // console.log(data);
+        setCommentText('');
+
+        updateCard(columnId, cardId, 'comments', data);
+      }
+    } catch (err) {
+      logger.error(err);
+    }
   };
 
   return (
     <>
-      {comments.map(comment => (
+      {data.map(comment => (
         <div key={comment.id} className={s.commentContainer}>
-          <Avatar name={comment.author} />
+          <Avatar name={`${comment.users.name} ${comment.users.surname}`} />
           <div className={s.commentWrap}>
             <div className={s.authorData}>
-              <p className={s.author}>{comment.author}</p>
-              <p className={s.date}>{comment.date}</p>
+              <p className={s.author}>{`${comment.users.name} ${comment.users.surname}`}</p>
+              <p className={s.date}>{getISODate(new Date(comment.createdAt))}</p>
             </div>
             <div className={s.comment}>{comment.text}</div>
           </div>
         </div>
       ))}
       <form className={s.sendForm} onSubmit={handleSendMessage}>
-        <Avatar name={'Евгения Полякова'} />
+        {user && <Avatar name={`${user.name} ${user.surname}`} />}
         <div>
           <textarea
             className={s.textarea}
@@ -64,7 +64,9 @@ const Comments = () => {
             placeholder="Напишите комментарий..."
             value={commentText}
           />
-          <Button type="submit">Отправить</Button>
+          <Button type="submit" disabled={!commentText}>
+            Отправить
+          </Button>
         </div>
       </form>
     </>

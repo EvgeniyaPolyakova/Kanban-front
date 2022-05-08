@@ -10,12 +10,13 @@ import { DeskColumn } from '../../interfaces/desk';
 import OutsideClickHandler from 'react-outside-click-handler';
 import CardModal from '../../components/CardModal';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { createColumn, getColumns } from '../../api/columns';
+import { createColumn, getColumns, renameColumn } from '../../api/columns';
 import useLogger from '../../hooks/useLogger';
 import { useRouter } from 'next/router';
 import { createCard, updateCardNumber } from '../../api/cards';
 import { CardInterface } from '../../interfaces/card';
 import { sortBy } from 'lodash';
+import { useUser } from '../../hooks/useUser';
 
 const MIN_RANGE = 0;
 const MAX_RANGE = 1_000_000;
@@ -26,10 +27,14 @@ const Desk: NextPage = () => {
   const [columns, setColumns] = useState<DeskColumn[]>([]);
   const [cardName, setCardName] = useState<string>('');
   const [columnName, setColumnName] = useState<string>('');
+  const [newColumnName, setNewColumnName] = useState<string>('');
   const [openCardId, setOpenCardId] = useState<number>(-1);
   const [openCardColumnId, setOpenCardColumnId] = useState<number>(-1);
+  const { user } = useUser();
   const logger = useLogger();
   const router = useRouter();
+
+  console.log(user);
 
   const activeCard = useMemo(() => {
     const columnIdx = columns.findIndex(column => column.id === openCardColumnId);
@@ -84,6 +89,34 @@ const Desk: NextPage = () => {
     [setColumns]
   );
 
+  // const deleteFromCard = useCallback(
+  //   (columnId: number, cardId: number, field: keyof CardInterface, value: any) => {
+  //     setColumns(prevColumnState =>
+  //       prevColumnState.map(column =>
+  //         column.id !== columnId
+  //           ? column
+  //           : {
+  //               ...column,
+  //               cards: column.cards.map(card => {
+  //                 if (card.id !== cardId) return card;
+  //                 let newValue;
+  //                 const oldValue = card[field];
+
+  //                 if (Array.isArray(oldValue)) {
+  //                   newValue = [...oldValue, value];
+  //                 } else {
+  //                   newValue = value;
+  //                 }
+
+  //                 return { ...card, [field]: newValue };
+  //               }),
+  //             }
+  //       )
+  //     );
+  //   },
+  //   [setColumns]
+  // );
+
   const handleClickCreate = () => {
     setIsCreateColumn(true);
   };
@@ -98,8 +131,8 @@ const Desk: NextPage = () => {
     setCardName(e.target.value);
   };
 
-  const handleChangeNewColumnName = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setColumnName(e.target.value);
+  const handleChangeNewnewColumnName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewColumnName(e.target.value);
   };
 
   const handleAddNewColumn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -108,9 +141,13 @@ const Desk: NextPage = () => {
     const prevState = columns;
 
     try {
-      const { data } = await createColumn({ deskId: +router.query.id!, name: columnName, number: columns.length + 1 });
+      const { data } = await createColumn({
+        deskId: +router.query.id!,
+        name: newColumnName,
+        number: columns.length + 1,
+      });
       setColumns(prev => [...prev, { ...data, cards: [] }]);
-      setColumnName('');
+      setNewColumnName('');
     } catch (err) {
       setColumns(prevState);
       logger.error(err);
@@ -143,7 +180,7 @@ const Desk: NextPage = () => {
     try {
       const { data } = await createCard({
         columnId: +updateColumnId,
-        userId: 1,
+        userId: user!.id,
         title: cardName,
         number: currentNumber,
       });
@@ -253,6 +290,35 @@ const Desk: NextPage = () => {
     }
   };
 
+  const handleChangeColumnName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id } = e.currentTarget.dataset;
+    if (id) {
+      setColumns(prev => prev.map(column => (column.id === +id ? { ...column, name: e.target.value } : column)));
+    }
+  };
+
+  const handleFocusColumnName = (e: React.FocusEvent<HTMLInputElement>) => {
+    setColumnName(e.target.value);
+  };
+
+  const handleBlurColumnName = async (e: React.FocusEvent<HTMLInputElement>) => {
+    console.log(e.target.value);
+    const { id } = e.currentTarget.dataset;
+    if (id) {
+      try {
+        if (e.target.value !== '') {
+          await renameColumn({ id: +id, name: e.target.value });
+        } else {
+          setColumns(prev => prev.map(column => (column.id === +id ? { ...column, name: columnName } : column)));
+          await renameColumn({ id: +id, name: columnName });
+        }
+      } catch (err) {
+        await renameColumn({ id: +id, name: columnName });
+        logger.error(err);
+      }
+    }
+  };
+
   return (
     <>
       <Layout>
@@ -260,7 +326,15 @@ const Desk: NextPage = () => {
           <DragDropContext onDragEnd={handleOrderUpdate}>
             {columns.map(column => (
               <div className={s.column} key={column.id}>
-                <p className={s.title}>{column.name}</p>
+                <input
+                  value={column.name}
+                  onChange={handleChangeColumnName}
+                  data-id={column.id}
+                  className={s.сolumnName}
+                  onFocus={handleFocusColumnName}
+                  onBlur={handleBlurColumnName}
+                />
+                {/* <p className={s.title}>{column.name}</p> */}
                 <div className={s.separator} />
 
                 <Droppable droppableId={`${column.id}`} type="PERSON">
@@ -278,6 +352,9 @@ const Desk: NextPage = () => {
                                 <Card
                                   filesAmount={card.files.length}
                                   checklistAmount={card.checklists.length}
+                                  commentsAmount={card.comments.length}
+                                  deadline={card.deadline}
+                                  isComplited={card.isComplited}
                                   data-id={card.id}
                                   data-columnid={column.id}
                                   title={card.title}
@@ -298,7 +375,12 @@ const Desk: NextPage = () => {
                   <OutsideClickHandler onOutsideClick={outsideClickCreateCard}>
                     <form className={s.createForm} onSubmit={handleCreateCard}>
                       <div className={s.formWrap}>
-                        <Input value={cardName} onChange={handleChangeCardName} className={s.inputColumnTitle} />
+                        <Input
+                          value={cardName}
+                          onChange={handleChangeCardName}
+                          className={s.inputColumnTitle}
+                          placeholder="Название карточки"
+                        />
                         <Button type="submit" disabled={!cardName}>
                           Добавить
                         </Button>
@@ -322,13 +404,16 @@ const Desk: NextPage = () => {
                   <Input
                     type="text"
                     name="name"
-                    value={columnName}
-                    onChange={handleChangeNewColumnName}
+                    value={newColumnName}
+                    onChange={handleChangeNewnewColumnName}
                     className={s.inputColumnTitle}
+                    placeholder="Название колонки"
                     // isInvalid={!!formik.errors.name && formik.touched.name}
                     // errorMessage={formik.errors.name}
                   />
-                  <Button type="submit">Добавить</Button>
+                  <Button type="submit" disabled={newColumnName === ''}>
+                    Добавить
+                  </Button>
                 </div>
               </form>
             </OutsideClickHandler>

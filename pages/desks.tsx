@@ -9,22 +9,25 @@ import s from '../styles/desks.module.scss';
 import useLogger from '../hooks/useLogger';
 import { createDesk, getDesksList } from '../api/desks';
 import { Desk } from '../interfaces/desk';
+import { useUser } from '../hooks/useUser';
 
 const Desks: NextPage = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [deskName, setDeskName] = useState<string>('');
   const logger = useLogger();
   const [deskArray, setDeskArray] = useState<Desk[]>([]);
+  const { user } = useUser();
 
   useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await getDesksList(1);
-        setDeskArray(data);
-      } catch (err) {
-        logger.error(err);
-      }
-    })();
+    if (user)
+      (async () => {
+        try {
+          const { data } = await getDesksList(user?.id);
+          setDeskArray(data);
+        } catch (err) {
+          logger.error(err);
+        }
+      })();
   }, []);
 
   const handleClick = () => {
@@ -39,8 +42,10 @@ const Desks: NextPage = () => {
     e.preventDefault();
     const prevState = deskArray;
     try {
-      const { data } = await createDesk({ userId: 1, name: deskName });
-      setDeskArray(prev => [...prev, data]);
+      if (user) {
+        const { data } = await createDesk({ userId: user.id, name: deskName });
+        setDeskArray(prev => [...prev, data]);
+      }
     } catch (err) {
       setDeskArray(prevState);
       logger.error(err);

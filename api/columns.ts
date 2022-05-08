@@ -14,3 +14,10 @@ export const createColumn = (data: CreateColumnDto): Promise<AxiosResponse<DeskC
 export const getColumns = (deskId: number): Promise<AxiosResponse<DeskColumn[]>> => {
   return makeRequest.get(`/columns/get-columns/${deskId}`);
 };
+
+export const renameColumn = (columnData: { id: number; name: string }) => {
+  return makeRequest.post('columns/rename', {
+    id: columnData.id,
+    name: columnData.name,
+  });
+};

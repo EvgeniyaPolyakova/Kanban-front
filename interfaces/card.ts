@@ -1,4 +1,5 @@
 import { CardChecklist } from './checklist';
+import { User } from './user';
 
 export interface CardInterface {
   id: number;
@@ -10,15 +11,16 @@ export interface CardInterface {
   deadline?: string | null;
   isComplited: boolean;
   checklists: CardChecklist[];
-  comments?: Comment[];
+  comments: Comment[];
   files: CardFiles[];
 }
 
 export interface Comment {
   id: number;
   author: string;
-  date: string;
+  createdAt: string;
   text: string;
+  users: User;
 }
 
 export interface CardFiles {

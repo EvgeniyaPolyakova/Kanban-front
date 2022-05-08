@@ -1,6 +1,7 @@
 .wrap {
   display: flex;
   align-items: center;
+  position: relative;
   gap: 20px;
   background: var(--white);
   border-radius: 8px;
@@ -10,4 +11,60 @@
   padding: 10px 30px;
   margin: 20px 0;
   font-size: 22px;
+}
+
+.itemWrap {
+  position: relative;
+}
+
+.moreOptionsBtn {
+  position: absolute;
+  right: 30px;
+  background: transparent;
+  cursor: pointer;
+  border: none;
+}
+
+.moreOptionsWrap {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background: var(--white);
+  width: 150px;
+  height: 35px;
+  top: 65px;
+  right: 110px;
+  box-shadow: -4px 4px 4px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  padding: 5px 0;
+
+  button {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: transparent;
+    cursor: pointer;
+    border: none;
+    height: 30px;
+  }
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  color: var(--text-color);
+  font-weight: 600;
+  margin: 0;
+  width: 100%;
+  outline: none;
+  border: 2px solid white;
+  border-radius: 4px;
+  padding: 7px 5px;
+}
+
+.cardTitle:focus {
+  border: 2px solid #b9b5b5;
+  padding: 7px 5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }

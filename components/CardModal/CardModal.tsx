@@ -93,6 +93,7 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
     try {
       setIsCompleted(prev => !prev);
       await toggleIsCompleted({ id: id, isComplited: !isCompleted });
+      updateCard(card.columnId, card.id, 'isComplited', !isCompleted);
     } catch (err) {
       setIsCompleted(prevState);
       logger.error(err);
@@ -102,7 +103,10 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
   const handleSetDeadline = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setDeadline(e.target.value);
-      await saveDeadline({ id: id, deadline: new Date(e.target.value) });
+      const { data } = await saveDeadline({ id: id, deadline: new Date(e.target.value) });
+      console.log(data);
+
+      updateCard(card.columnId, card.id, 'deadline', new Date(e.target.value));
     } catch (err) {
       logger.error(err);
       setDeadline('');
@@ -130,14 +134,44 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
     }
   };
 
+  const handleDownloadFile = (e: React.MouseEvent<HTMLElement>) => {
+    const { id } = e.currentTarget.dataset;
+
+    if (id) {
+      const fileIdx = card.files.findIndex(file => file.id === +id);
+
+      window.URL = window.URL || window.webkitURL;
+
+      let xhr = new XMLHttpRequest(),
+        a = document.createElement('a'),
+        file;
+
+      xhr.open('GET', `http://localhost:3001/${card.files[fileIdx].binaryData}`, true);
+      xhr.responseType = 'blob';
+      xhr.onload = function () {
+        file = new Blob([xhr.response], { type: 'application/octet-stream' });
+        a.href = window.URL.createObjectURL(file);
+        a.download = card.files[fileIdx].fileName; // Set to whatever file name you want
+
+        a.click();
+      };
+      xhr.send();
+    }
+  };
+
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
   };
 
   const handleSaveTitle = async () => {
     try {
-      const { data } = await saveTitle({ id: id, title: title });
-      updateCard(card.columnId, card.id, 'title', data.title);
+      if (title !== '') {
+        const { data } = await saveTitle({ id: id, title: title });
+        updateCard(card.columnId, card.id, 'title', data.title);
+      } else {
+        updateCard(card.columnId, card.id, 'title', card.title);
+        setTitle(card.title);
+      }
     } catch (err) {
       logger.error(err);
     }
@@ -211,6 +245,8 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
     }
   };
 
+  const handleDeleteDeadline = () => {};
+
   return (
     <>
       {card && (
@@ -276,17 +312,24 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
 
                     {(isDateAdd || deadline.trim()) && (
                       <div className={s.deadlineWrap}>
-                        <p className={s.deadlineTitle}>Срок исполнения</p>
+                        <div className={s.titleWithCloseBtn}>
+                          <p className={s.deadlineTitle}>Срок исполнения</p>
+                          <button className={s.closeDeadline} onClick={handleDeleteDeadline}>
+                            <CrossIcon />
+                          </button>
+                        </div>
                         <div className={s.datePickerWrapper}>
-                          <label className={s.checkboxTitle}>
-                            <input
-                              type="checkbox"
-                              className={s.checkbox}
-                              onChange={handleCompleted}
-                              checked={isCompleted}
-                            />
-                            {isCompleted ? <CheckedCheckbox /> : <Checkbox />}
-                          </label>
+                          {deadline && (
+                            <label className={s.checkboxTitle}>
+                              <input
+                                type="checkbox"
+                                className={s.checkbox}
+                                onChange={handleCompleted}
+                                checked={isCompleted}
+                              />
+                              {isCompleted ? <CheckedCheckbox /> : <Checkbox />}
+                            </label>
+                          )}
                           <input
                             type="date"
                             className={cn(s.datePicker, { [s.completedDeadline]: isCompleted })}
@@ -314,7 +357,7 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
                     />
                     {isDescriptionFocus && (
                       <div className={s.addDescriptionWrap}>
-                        <Button className={s.addDescriptionBtn} onClick={handleAddDescription}>
+                        <Button className={s.addDescriptionBtn} onClick={handleAddDescription} disabled={!description}>
                           Добавить
                         </Button>
                         <button className={s.clearDescriptionBtn} onClick={handleClearDescription}>
@@ -345,8 +388,10 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
                           <li key={file.id}>
                             {file.binaryData.trim() && (
                               <a
-                                download={file.fileName}
-                                href={`http://localhost:3001/${file.binaryData}`}
+                                data-id={file.id}
+                                // download={file.fileName}
+                                // href={`http://localhost:3001/${file.binaryData}`}
+                                onClick={handleDownloadFile}
                                 // target="_blank"
                               >
                                 {file.fileName}
@@ -366,7 +411,7 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
                     <CommentsIcon />
                     <p className={s.title}>Комментарии</p>
                   </div>
-                  <Comments />
+                  <Comments data={card.comments} cardId={id} updateCard={updateCard} columnId={card.columnId} />
                 </div>
                 <div className={s.addItemsWrap}>
                   {/* <button type="button" className={s.closeBtn} onClick={handleOutsideClick}>

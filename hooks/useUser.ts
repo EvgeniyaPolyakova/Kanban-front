@@ -17,5 +17,5 @@ export function useUser() {
     setUser(user);
   };
 
-  return { getToken, enter, user };
+  return { getToken, enter, user, setUser };
 }

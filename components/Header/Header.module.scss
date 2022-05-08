@@ -25,3 +25,26 @@
   gap: 10px;
   height: 80px;
 }
+
+.userAvatar {
+  cursor: pointer;
+}
+
+.userMenu {
+  position: absolute;
+  z-index: 1;
+  right: 18px;
+  width: 60px;
+  height: 40px;
+  background: var(--white);
+  display: flex;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.logout {
+  background: transparent;
+  cursor: pointer;
+  border: none;
+  color: #7b52be;
+}

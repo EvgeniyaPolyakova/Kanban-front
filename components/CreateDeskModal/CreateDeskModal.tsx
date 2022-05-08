@@ -25,19 +25,6 @@ const CreateDeskModal = ({ handleOutsideClick, onSubmit, value, setValue }: Prop
     setValue(e.target.value);
   };
 
-  // const formik = useFormik({
-  //   initialValues: {
-  //     name: "",
-  //   },
-  //   validationSchema,
-  //   onSubmit,
-  //   // : (values) => {
-  //   //   console.log(values);
-
-  //   //   router.push("/desk/1");
-  //   // },
-  // });
-
   return (
     <div className={s.modalWrap}>
       <div className={s.modalBackDrop} />
@@ -54,7 +41,7 @@ const CreateDeskModal = ({ handleOutsideClick, onSubmit, value, setValue }: Prop
               // isInvalid={!!formik.errors.name && formik.touched.name}
               // errorMessage={formik.errors.name}
             />
-            <Button className={s.btn} type="submit">
+            <Button className={s.btn} type="submit" disabled={value === ''}>
               Создать
             </Button>
           </form>

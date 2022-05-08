@@ -10,9 +10,11 @@ import Modal from '../components/Modal/Modal';
 import LoginForm from '../components/LoginForm';
 import Link from 'next/link';
 import { Layout } from '../components/Layout';
+import { useUser } from '../hooks/useUser';
 
 const Home: NextPage = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useUser();
 
   return (
     <>
@@ -30,9 +32,15 @@ const Home: NextPage = () => {
             помогает командам эффективно <br />
             решать рабочие задачия
           </p>
-          <Link href="/login">
-            <a className={styles.link}>Авторизоваться</a>
-          </Link>
+          {user ? (
+            <Link href="/desks">
+              <a className={styles.link}>Приступить к работе</a>
+            </Link>
+          ) : (
+            <Link href="/login">
+              <a className={styles.link}>Авторизоваться</a>
+            </Link>
+          )}
         </div>
       </Layout>
       {/* </main> */}

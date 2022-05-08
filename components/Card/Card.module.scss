@@ -34,3 +34,23 @@
     height: 14px;
   }
 }
+
+.deadlineAttribute {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-direction: row;
+  margin-right: 6px;
+  margin-top: 8px;
+}
+
+.complitedDeadline {
+  background: #08c2089c;
+  padding: 2px;
+  border-radius: 2px;
+  color: white;
+
+  svg path {
+    fill: white;
+  }
+}
