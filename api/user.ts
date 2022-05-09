@@ -1,5 +1,8 @@
-import { RegisterDto } from './dto/userDto';
 import makeRequest from './makeRequest';
+
+export const getMyUser = () => {
+  return makeRequest.get('/users/my');
+};
 
 export const getAllUser = () => {
   return makeRequest.get('/users/get-all-users');

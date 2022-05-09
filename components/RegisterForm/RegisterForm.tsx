@@ -9,7 +9,8 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useUser } from '../../hooks/useUser';
 import { useRouter } from 'next/router';
-import useLogger from "../../hooks/useLogger";
+import useLogger from '../../hooks/useLogger';
+import { register } from '../../api/register';
 
 const validationSchema = yup.object().shape({
   name: yup.string().required('Введите имя'),
@@ -20,7 +21,7 @@ const validationSchema = yup.object().shape({
 
 const RegisterForm = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
-  const { getToken } = useUser();
+  const { setUser } = useUser();
   const router = useRouter();
   const logger = useLogger();
 
@@ -34,7 +35,9 @@ const RegisterForm = () => {
     validationSchema,
     onSubmit: async values => {
       try {
-        await getToken({ ...values });
+        const { data } = await register(values);
+        setUser(data);
+        localStorage.setItem('token', data.token);
         await router.push('/desks');
       } catch (err) {
         logger.error(err);
