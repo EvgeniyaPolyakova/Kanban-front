@@ -11,6 +11,7 @@ import * as yup from 'yup';
 import { useUser } from '../../hooks/useUser';
 import { useRouter } from 'next/router';
 import useLogger from '../../hooks/useLogger';
+import { login } from '../../api/login';
 
 const validationSchema = yup.object().shape({
   login: yup.string().email('Некорректный email адрес').required('Введите адрес электронной почты'),
@@ -19,9 +20,9 @@ const validationSchema = yup.object().shape({
 
 const LoginForm = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
-  const { enter } = useUser();
   const router = useRouter();
   const logger = useLogger();
+  const { setUser } = useUser();
 
   const formik = useFormik({
     initialValues: {
@@ -31,7 +32,9 @@ const LoginForm = () => {
     validationSchema,
     onSubmit: async values => {
       try {
-        await enter(values);
+        const { data } = await login(values);
+        setUser(data);
+        localStorage.setItem('token', data.token);
         await router.push('/desks');
       } catch (err) {
         logger.error(err);
