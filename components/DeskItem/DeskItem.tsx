@@ -9,9 +9,10 @@ import React, { useState } from 'react';
 interface Props {
   name: string;
   id: number;
+  handleDeleteDesk: () => void;
 }
 
-const DeskItem = ({ name, id }: Props) => {
+const DeskItem = ({ name, id, handleDeleteDesk }: Props) => {
   const [isMoreOptionsOpen, setIsMoreOptionOpen] = useState<boolean>(false);
 
   const handleClickMoreOptions = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -20,7 +21,7 @@ const DeskItem = ({ name, id }: Props) => {
     setIsMoreOptionOpen(prev => !prev);
   };
 
-  const handleDeleteDesk = () => {};
+  // const handleDeleteDesk = () => {};
 
   return (
     <div className={s.itemWrap}>
@@ -35,10 +36,6 @@ const DeskItem = ({ name, id }: Props) => {
       </Link>
       {isMoreOptionsOpen && (
         <div className={s.moreOptionsWrap}>
-          {/* <button>
-            <EditIcon />
-            переименовать
-          </button> */}
           <button onClick={handleDeleteDesk}>
             <TrashIcon />
             удалить

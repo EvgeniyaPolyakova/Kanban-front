@@ -2,12 +2,13 @@ import React, { useState, useMemo } from 'react';
 import CheckedCheckbox from '../../assets/icons/checkbox.svg';
 import Checkbox from '../../assets/icons/square.svg';
 import AddChecklistIcon from '../../assets/icons/circle-plus.svg';
+import TrashIcon from '../../assets/icons/trash.svg';
 import Input from '../Input';
 import Button from '../Button';
 import s from './Checklist.module.scss';
 import { CardChecklist } from '../../interfaces/checklist';
 import useLogger from '../../hooks/useLogger';
-import { createTask, toggleComplited } from '../../api/checklist';
+import { createTask, deleteChecklistItem, toggleComplited } from '../../api/checklist';
 import { CardInterface } from '../../interfaces/card';
 
 interface Props {
@@ -15,9 +16,10 @@ interface Props {
   data: CardChecklist[];
   updateCard: (columnId: number, cardId: number, field: keyof CardInterface, value: any) => void;
   columnId: number;
+  deleteFromCard: (columnId: number, cardId: number, field: keyof CardInterface, deleteItemIdx: number) => void;
 }
 
-const Checklist = ({ cardId, data, updateCard, columnId }: Props) => {
+const Checklist = ({ cardId, data, updateCard, columnId, deleteFromCard }: Props) => {
   const [newChecklistItem, setNewChecklistItem] = useState<string>('');
   const [isOpenCreateForm, setIsOpenCreateForm] = useState<boolean>(false);
   const [checklistTasks, setChecklistsTask] = useState<CardChecklist[]>(data);
@@ -72,6 +74,20 @@ const Checklist = ({ cardId, data, updateCard, columnId }: Props) => {
     setIsOpenCreateForm(true);
   };
 
+  const handleDeleteTask = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    try {
+      const { id } = e.currentTarget.dataset;
+
+      if (id) {
+        deleteFromCard(columnId, cardId, 'checklists', +id);
+        setChecklistsTask(prev => prev.filter(item => item.id !== +id));
+        await deleteChecklistItem(+id);
+      }
+    } catch (err) {
+      logger.error(err);
+    }
+  };
+
   return (
     <>
       <div className={s.checklistProgress}>
@@ -82,18 +98,23 @@ const Checklist = ({ cardId, data, updateCard, columnId }: Props) => {
       </div>
 
       {checklistTasks.map(task => (
-        <label className={s.checkboxTitle} key={task.id}>
-          <input
-            data-id={task.id}
-            type="checkbox"
-            className={s.checkbox}
-            onChange={handleChecked}
-            checked={task.isChecked}
-            value={task.task}
-          />
-          {task.isChecked ? <CheckedCheckbox /> : <Checkbox />}
-          {task.task}
-        </label>
+        <div key={task.id} className={s.checklistTaskWrap}>
+          <label className={s.checkboxTitle}>
+            <input
+              data-id={task.id}
+              type="checkbox"
+              className={s.checkbox}
+              onChange={handleChecked}
+              checked={task.isChecked}
+              value={task.task}
+            />
+            {task.isChecked ? <CheckedCheckbox /> : <Checkbox />}
+            {task.task}
+          </label>
+          <button className={s.trashChecklistItem} onClick={handleDeleteTask} data-id={task.id}>
+            <TrashIcon />
+          </button>
+        </div>
       ))}
 
       {!isOpenCreateForm ? (

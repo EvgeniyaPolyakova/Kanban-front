@@ -133,6 +133,7 @@
 .executorWrap {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .executorContainer {
@@ -172,8 +173,8 @@
   // overflow-x: auto;
   background: #fbfbfb;
   position: absolute;
-  top: 150px;
-  left: 150px;
+  top: 70px;
+  left: 40px;
   border-radius: 6px;
   box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
   z-index: 1;
@@ -374,4 +375,65 @@
   right: 12px;
   top: 7px;
   cursor: pointer;
+}
+
+.clearGroup {
+  appearance: none;
+  background: transparent;
+  border: none;
+  position: absolute;
+  right: 220px;
+  // top: 7px;
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+  }
+}
+
+.trashFileItem {
+  appearance: none;
+  border: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  svg {
+    width: 15px;
+  }
+}
+
+.fileWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.moreOptionsWrap {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background: var(--white);
+  width: 150px;
+  height: 35px;
+  top: 65px;
+  // right: 110px;
+  box-shadow: -4px 4px 4px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  padding: 5px 0;
+
+  button {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: transparent;
+    cursor: pointer;
+    border: none;
+    height: 30px;
+  }
+}
+
+.executorWithMenu {
+  position: relative;
 }

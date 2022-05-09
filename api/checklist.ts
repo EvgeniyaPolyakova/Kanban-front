@@ -22,3 +22,11 @@ export const toggleComplited = (checlistData: { id: number; isChecked: boolean }
     isChecked: checlistData.isChecked,
   });
 };
+
+export const deleteChecklistItem = (taskId: number) => {
+  return makeRequest.delete(`/checklists/delete-task/${taskId}`);
+};
+
+export const deleteChecklist = (cardId: number) => {
+  return makeRequest.delete(`/checklists/delete-all-tasks/${cardId}`);
+};

@@ -11,3 +11,5 @@ export const createDesk = (data: CreateDeskDto) => {
 export const getDesksList = (userId: number) => {
   return makeRequest.get(`/get-desks/${userId}`);
 };
+
+// export const deleteDesk = ()

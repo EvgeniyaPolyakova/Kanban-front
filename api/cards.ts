@@ -58,3 +58,10 @@ export const toggleIsCompleted = (cardData: { id: number; isComplited: boolean }
     isComplited: cardData.isComplited,
   });
 };
+
+export const deleteDeadline = (cardData: { id: number; isComplited: boolean }) => {
+  return makeRequest.post('/cards/delete-deadline', {
+    id: cardData.id,
+    isComplited: cardData.isComplited,
+  });
+};

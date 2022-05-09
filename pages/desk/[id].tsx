@@ -34,8 +34,6 @@ const Desk: NextPage = () => {
   const logger = useLogger();
   const router = useRouter();
 
-  console.log(user);
-
   const activeCard = useMemo(() => {
     const columnIdx = columns.findIndex(column => column.id === openCardColumnId);
     const card = columns[columnIdx]?.cards.find(card => card.id === openCardId);
@@ -89,8 +87,8 @@ const Desk: NextPage = () => {
     [setColumns]
   );
 
-  // const deleteFromCard = useCallback(
-  //   (columnId: number, cardId: number, field: keyof CardInterface, value: any) => {
+  // const updateComplitedChecklistCard = useCallback(
+  //   (columnId: number, cardId: number, field: 'checklists', updateTaskIdx: number) => {
   //     setColumns(prevColumnState =>
   //       prevColumnState.map(column =>
   //         column.id !== columnId
@@ -98,17 +96,8 @@ const Desk: NextPage = () => {
   //           : {
   //               ...column,
   //               cards: column.cards.map(card => {
-  //                 if (card.id !== cardId) return card;
-  //                 let newValue;
-  //                 const oldValue = card[field];
+  //                card.checklists.map(task => task.id === )
 
-  //                 if (Array.isArray(oldValue)) {
-  //                   newValue = [...oldValue, value];
-  //                 } else {
-  //                   newValue = value;
-  //                 }
-
-  //                 return { ...card, [field]: newValue };
   //               }),
   //             }
   //       )
@@ -116,6 +105,40 @@ const Desk: NextPage = () => {
   //   },
   //   [setColumns]
   // );
+
+  const deleteFromCard = useCallback(
+    (columnId: number, cardId: number, field: keyof CardInterface, deleteItemId: number) => {
+      setColumns(prevColumnState =>
+        prevColumnState.map(column =>
+          column.id !== columnId
+            ? column
+            : {
+                ...column,
+                cards: column.cards.map(card => {
+                  if (card.id !== cardId) return card;
+                  let newValue;
+                  const oldValue = card[field];
+
+                  console.log('deleteItemIdx', deleteItemId);
+
+                  if (Array.isArray(oldValue)) {
+                    if (deleteItemId === -1) {
+                      newValue = [];
+                    } else {
+                      newValue = [...oldValue].filter(item => item.id !== deleteItemId);
+                    }
+                  } else {
+                    newValue = oldValue;
+                  }
+
+                  return { ...card, [field]: newValue };
+                }),
+              }
+        )
+      );
+    },
+    [setColumns]
+  );
 
   const handleClickCreate = () => {
     setIsCreateColumn(true);
@@ -164,7 +187,6 @@ const Desk: NextPage = () => {
 
   const handleCreateCard = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(columns);
     let prevNumber = MIN_RANGE;
 
     const columnIdx = columns.findIndex(column => column.id === +updateColumnId);
@@ -255,8 +277,6 @@ const Desk: NextPage = () => {
 
           newNumber = Math.round(Math.random() * (nextNumber - prevNumber) + prevNumber);
         }
-
-        console.log(prevNumber, nextNumber);
       } else {
         if (columns[destinationColumnIdx].cards.length === 0) {
           newNumber = Math.round(Math.random() * (MAX_RANGE - MIN_RANGE) + MIN_RANGE);
@@ -279,7 +299,6 @@ const Desk: NextPage = () => {
       newColumns[destinationColumnIdx].cards.splice(destinationIndex, 0, { ...removedSort, number: newNumber });
 
       setColumns(newColumns);
-      console.log(newColumns);
       await updateCardNumber({
         id: newColumns[destinationColumnIdx].cards[destinationIndex].id,
         number: newNumber,
@@ -302,7 +321,6 @@ const Desk: NextPage = () => {
   };
 
   const handleBlurColumnName = async (e: React.FocusEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
     const { id } = e.currentTarget.dataset;
     if (id) {
       try {
@@ -426,7 +444,13 @@ const Desk: NextPage = () => {
         </div>
       </Layout>
       {activeCard && (
-        <CardModal handleOutsideClick={handleCloseCard} id={openCardId} card={activeCard} updateCard={updateCard} />
+        <CardModal
+          handleOutsideClick={handleCloseCard}
+          id={openCardId}
+          card={activeCard}
+          updateCard={updateCard}
+          deleteFromCard={deleteFromCard}
+        />
       )}
     </>
   );

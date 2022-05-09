@@ -53,6 +53,8 @@ const Desks: NextPage = () => {
     setIsOpen(false);
   };
 
+  const handleDeleteDesk = () => {};
+
   return (
     <>
       <Layout>
@@ -61,7 +63,7 @@ const Desks: NextPage = () => {
           <div className={s.deskListContainer}>
             <div>
               {deskArray.map(desk => (
-                <DeskItem key={desk.id} name={desk.name} id={desk.id} />
+                <DeskItem key={desk.id} name={desk.name} id={desk.id} handleDeleteDesk={handleDeleteDesk} />
               ))}
             </div>
             <CreateDesk onClick={handleClick} />

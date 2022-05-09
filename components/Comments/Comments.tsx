@@ -30,7 +30,6 @@ const Comments = ({ cardId, columnId, updateCard, data }: Props) => {
     try {
       if (user) {
         const { data } = await saveComment({ userId: user.id, cardId: cardId, text: commentText });
-        // console.log(data);
         setCommentText('');
 
         updateCard(columnId, cardId, 'comments', data);

@@ -27,12 +27,9 @@ const Card = ({
   isComplited,
   ...props
 }: Props) => {
-  console.log(deadline);
-
   const localeDealine = useMemo(() => {
     if (deadline) {
       const dateDeadline = new Date(deadline);
-      console.log('dateDeadline', dateDeadline);
 
       const locDate = dateDeadline.toLocaleString('ru-RU', {
         month: 'numeric',

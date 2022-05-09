@@ -10,7 +10,6 @@ export function Header() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
   const { user, setUser } = useUser();
   const router = useRouter();
-  console.log(user);
 
   const handleClickAvatar = () => {
     setIsUserMenuOpen(prev => !prev);

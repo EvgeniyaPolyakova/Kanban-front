@@ -14,31 +14,39 @@ import CommentsIcon from '../../assets/icons/comment.svg';
 import CrossIcon from '../../assets/icons/cross.svg';
 import PeopleIcon from '../../assets/icons/people.svg';
 import PlusIcon from '../../assets/icons/plus-icon.svg';
+import TrashIcon from '../../assets/icons/trash.svg';
 import useLogger from '../../hooks/useLogger';
-import { getCardById, saveDeadline, saveDescription, saveTitle, toggleIsCompleted } from '../../api/cards';
+import {
+  deleteDeadline,
+  getCardById,
+  saveDeadline,
+  saveDescription,
+  saveTitle,
+  toggleIsCompleted,
+} from '../../api/cards';
 import { CardFiles, CardInterface } from '../../interfaces/card';
 import Button from '../Button';
 // import { CardChecklist } from '../../interfaces/checklist';
 import CheckedCheckbox from '../../assets/icons/checkbox.svg';
 import Checkbox from '../../assets/icons/square.svg';
 import cn from 'classnames';
-import { uploadFiles } from '../../api/files';
+import { deleteFiles, deleteFilesItem, uploadFiles } from '../../api/files';
 import Avatar from '../Avatar';
 import { getAllUser, getExecutorsList, saveExecutor } from '../../api/user';
 import { User } from '../../interfaces/user';
 import { useRouter } from 'next/router';
 import { isEqual } from 'lodash';
+import { deleteChecklist } from '../../api/checklist';
 
 interface Props {
   handleOutsideClick: () => void;
   id: number;
   card: CardInterface;
   updateCard: (columnId: number, cardId: number, field: keyof CardInterface, value: any) => void;
+  deleteFromCard: (columnId: number, cardId: number, field: keyof CardInterface, deleteItemIdx: number) => void;
 }
 
-const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
-  console.log(card);
-
+const CardModal = ({ handleOutsideClick, id, card, updateCard, deleteFromCard }: Props) => {
   // const [cardData, setCardData] = useState<CardInterface | null>(null);
   const [title, setTitle] = useState<string>(card.title);
   const [isDescriptionFocus, setIsDescriptionFocus] = useState<boolean>(false);
@@ -47,6 +55,7 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
   const [isFileAdd, setIsFileAdd] = useState<boolean>(false);
   const [isDateAdd, setIsDateAdd] = useState<boolean>(false);
   const [isExecutorsAdd, setIsExecutorsAdd] = useState<boolean>(false);
+  const [isExecutorMenuOpen, setIsExecutorMenuOpen] = useState<boolean>(false);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [deadline, setDeadline] = useState<string>('');
   // const [checklist, setChecklist] = useState<CardChecklist[]>(card.checklists || []);
@@ -104,7 +113,6 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
     try {
       setDeadline(e.target.value);
       const { data } = await saveDeadline({ id: id, deadline: new Date(e.target.value) });
-      console.log(data);
 
       updateCard(card.columnId, card.id, 'deadline', new Date(e.target.value));
     } catch (err) {
@@ -122,10 +130,8 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
         // setFileName(files[0].name);
         formData.append('file', files[0]);
         const { data } = await uploadFiles(id, formData);
-        console.log('before');
 
         updateCard(card.columnId, card.id, 'files', data);
-        console.log('after');
         // setCardFiles(prev => [...prev, data]);
       } catch (err) {
         // updateCard(card.columnId, card.id, 'files',);
@@ -190,8 +196,6 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
   };
 
   const handleClearDescription = () => {
-    console.log('clear');
-
     setDescription('');
     setIsDescriptionFocus(false);
   };
@@ -235,8 +239,6 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
   };
 
   const handleAddDescription = async () => {
-    console.log('save');
-
     try {
       await saveDescription({ id: id, description: description });
       setIsDescriptionFocus(false);
@@ -245,7 +247,56 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
     }
   };
 
-  const handleDeleteDeadline = () => {};
+  const handleDeleteDeadline = async () => {
+    try {
+      await deleteDeadline({ id: card.id, isComplited: false });
+      updateCard(card.columnId, card.id, 'deadline', '');
+      updateCard(card.columnId, card.id, 'isComplited', false);
+      setDeadline('');
+      setIsDateAdd(false);
+    } catch (err) {
+      logger.error(err);
+    }
+  };
+
+  const handleClearChecklist = async () => {
+    try {
+      deleteFromCard(card.columnId, card.id, 'checklists', -1);
+      setIsChecklistAdd(false);
+      await deleteChecklist(card.id);
+    } catch (err) {
+      logger.error(err);
+    }
+  };
+
+  const handleDeleteFile = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    try {
+      const { id } = e.currentTarget.dataset;
+
+      if (id) {
+        deleteFromCard(card.columnId, card.id, 'files', +id);
+
+        // setChecklistsTask(prev => prev.filter(item => item.id !== +id));
+        await deleteFilesItem(+id);
+      }
+    } catch (err) {
+      logger.error(err);
+    }
+  };
+
+  const handleClearFiles = async () => {
+    try {
+      deleteFromCard(card.columnId, card.id, 'files', -1);
+      setIsFileAdd(false);
+      await deleteFiles(+id);
+    } catch (err) {
+      logger.error(err);
+    }
+  };
+
+  const handleClickExecutorAvatar = () => {
+    setIsExecutorMenuOpen(prev => !prev);
+  };
 
   return (
     <>
@@ -276,10 +327,22 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
                           <p className={s.deadlineTitle}>Исполнители</p>
                           <div className={s.executorContainer}>
                             {executors.map(executor => (
-                              <Avatar name={`${executor.name} ${executor.surname}`} key={executor.id} />
+                              <div className={s.executorWithMenu} key={executor.id}>
+                                <Avatar
+                                  name={`${executor.name} ${executor.surname}`}
+                                  onClick={handleClickExecutorAvatar}
+                                />
+                                {isExecutorMenuOpen && (
+                                  <div className={s.moreOptionsWrap}>
+                                    <button>
+                                      <TrashIcon />
+                                      удалить
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             ))}
-                            {/* // <Avatar name="Иван Иванов" />
-                        // <Avatar name="Иван Иванов" /> */}
+
                             <button className={s.addExecutorBtn} onClick={handleOpenUsersList}>
                               <PlusIcon />
                             </button>
@@ -372,8 +435,17 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
                       <div className={s.titleWrap}>
                         <ChecklistIcon />
                         <p className={s.title}>Чек-лист</p>
+                        <button className={s.clearGroup} onClick={handleClearChecklist}>
+                          <CrossIcon />
+                        </button>
                       </div>
-                      <Checklist cardId={id} data={card.checklists} updateCard={updateCard} columnId={card.columnId} />
+                      <Checklist
+                        cardId={id}
+                        data={card.checklists}
+                        updateCard={updateCard}
+                        columnId={card.columnId}
+                        deleteFromCard={deleteFromCard}
+                      />
                     </>
                   )}
 
@@ -382,20 +454,22 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard }: Props) => {
                       <div className={s.titleWrap}>
                         <FileIcon />
                         <p className={s.title}>Файлы</p>
+                        <button className={s.clearGroup} onClick={handleClearFiles}>
+                          <CrossIcon />
+                        </button>
                       </div>
                       <ul className={s.filesList}>
                         {card.files.map(file => (
                           <li key={file.id}>
                             {file.binaryData.trim() && (
-                              <a
-                                data-id={file.id}
-                                // download={file.fileName}
-                                // href={`http://localhost:3001/${file.binaryData}`}
-                                onClick={handleDownloadFile}
-                                // target="_blank"
-                              >
-                                {file.fileName}
-                              </a>
+                              <div className={s.fileWrapper}>
+                                <a data-id={file.id} onClick={handleDownloadFile}>
+                                  {file.fileName}
+                                </a>
+                                <button className={s.trashFileItem} onClick={handleDeleteFile} data-id={file.id}>
+                                  <TrashIcon />
+                                </button>
+                              </div>
                             )}
                           </li>
                         ))}
