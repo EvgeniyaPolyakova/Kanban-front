@@ -33,7 +33,7 @@ const LoginForm = () => {
     onSubmit: async values => {
       try {
         const { data } = await login(values);
-        setUser(data);
+        setUser(data.user);
         localStorage.setItem('token', data.token);
         await router.push('/desks');
       } catch (err) {

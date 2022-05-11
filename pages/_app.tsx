@@ -7,7 +7,7 @@ import useInitializeUser from '../hooks/useInitializeUser';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [user, setUser] = useState<User | null>(null);
-  useInitializeUser();
+  useInitializeUser(setUser);
 
   return (
     <UserContextProvider value={{ user, setUser }}>

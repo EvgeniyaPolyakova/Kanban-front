@@ -17,6 +17,7 @@ export function Header() {
 
   const handleClickLogout = () => {
     setUser(null);
+    localStorage.setItem('token', '');
     router.push('/');
   };
 

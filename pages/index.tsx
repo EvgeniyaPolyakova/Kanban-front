@@ -30,7 +30,7 @@ const Home: NextPage = () => {
           <Title />
           <p className={styles.title}>
             помогает командам эффективно <br />
-            решать рабочие задачия
+            решать рабочие задачи
           </p>
           {user ? (
             <Link href="/desks">

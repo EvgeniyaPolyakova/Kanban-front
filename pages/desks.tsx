@@ -7,7 +7,7 @@ import DeskItem from '../components/DeskItem';
 import { Layout } from '../components/Layout';
 import s from '../styles/desks.module.scss';
 import useLogger from '../hooks/useLogger';
-import { createDesk, getDesksList } from '../api/desks';
+import { createDesk, deleteDesk, getDesksList } from '../api/desks';
 import { Desk } from '../interfaces/desk';
 import { useUser } from '../hooks/useUser';
 
@@ -28,7 +28,7 @@ const Desks: NextPage = () => {
           logger.error(err);
         }
       })();
-  }, []);
+  }, [user]);
 
   const handleClick = () => {
     setIsOpen(true);
@@ -53,7 +53,21 @@ const Desks: NextPage = () => {
     setIsOpen(false);
   };
 
-  const handleDeleteDesk = () => {};
+  const handleDeleteDesk = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    const prevState = deskArray;
+
+    const { id } = e.currentTarget.dataset;
+    if (id) {
+      try {
+        const newDesksArray = deskArray.filter(desk => desk.id !== +id);
+        setDeskArray(newDesksArray);
+        await deleteDesk(+id);
+      } catch (err) {
+        setDeskArray(prevState);
+        logger.error(err);
+      }
+    }
+  };
 
   return (
     <>

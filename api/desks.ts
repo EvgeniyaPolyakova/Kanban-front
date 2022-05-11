@@ -12,4 +12,6 @@ export const getDesksList = (userId: number) => {
   return makeRequest.get(`/get-desks/${userId}`);
 };
 
-// export const deleteDesk = ()
+export const deleteDesk = (deskId: number) => {
+  return makeRequest.delete(`/delete-desk/${deskId}`);
+};

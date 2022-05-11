@@ -17,6 +17,7 @@ import { createCard, updateCardNumber } from '../../api/cards';
 import { CardInterface } from '../../interfaces/card';
 import { sortBy } from 'lodash';
 import { useUser } from '../../hooks/useUser';
+import Link from 'next/link';
 
 const MIN_RANGE = 0;
 const MAX_RANGE = 1_000_000;
@@ -118,8 +119,6 @@ const Desk: NextPage = () => {
                   if (card.id !== cardId) return card;
                   let newValue;
                   const oldValue = card[field];
-
-                  console.log('deleteItemIdx', deleteItemId);
 
                   if (Array.isArray(oldValue)) {
                     if (deleteItemId === -1) {
@@ -340,6 +339,10 @@ const Desk: NextPage = () => {
   return (
     <>
       <Layout>
+        <br />
+        <Link href={`/desks/`}>
+          <a className={s.allDesksLink}>Все доски</a>
+        </Link>
         <div className={s.columnsWrapper}>
           <DragDropContext onDragEnd={handleOrderUpdate}>
             {columns.map(column => (
@@ -398,6 +401,7 @@ const Desk: NextPage = () => {
                           onChange={handleChangeCardName}
                           className={s.inputColumnTitle}
                           placeholder="Название карточки"
+                          autoFocus
                         />
                         <Button type="submit" disabled={!cardName}>
                           Добавить
@@ -426,6 +430,7 @@ const Desk: NextPage = () => {
                     onChange={handleChangeNewnewColumnName}
                     className={s.inputColumnTitle}
                     placeholder="Название колонки"
+                    autoFocus
                     // isInvalid={!!formik.errors.name && formik.touched.name}
                     // errorMessage={formik.errors.name}
                   />

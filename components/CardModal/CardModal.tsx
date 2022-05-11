@@ -32,11 +32,12 @@ import Checkbox from '../../assets/icons/square.svg';
 import cn from 'classnames';
 import { deleteFiles, deleteFilesItem, uploadFiles } from '../../api/files';
 import Avatar from '../Avatar';
-import { getAllUser, getExecutorsList, saveExecutor } from '../../api/user';
+import { deleteExecutor, deleteExecutors, getAllUser, getExecutorsList, saveExecutor } from '../../api/user';
 import { User } from '../../interfaces/user';
 import { useRouter } from 'next/router';
 import { isEqual } from 'lodash';
 import { deleteChecklist } from '../../api/checklist';
+import Executor from '../Executor';
 
 interface Props {
   handleOutsideClick: () => void;
@@ -55,7 +56,7 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard, deleteFromCard }:
   const [isFileAdd, setIsFileAdd] = useState<boolean>(false);
   const [isDateAdd, setIsDateAdd] = useState<boolean>(false);
   const [isExecutorsAdd, setIsExecutorsAdd] = useState<boolean>(false);
-  const [isExecutorMenuOpen, setIsExecutorMenuOpen] = useState<boolean>(false);
+  // const [isExecutorMenuOpen, setIsExecutorMenuOpen] = useState<boolean>(false);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [deadline, setDeadline] = useState<string>('');
   // const [checklist, setChecklist] = useState<CardChecklist[]>(card.checklists || []);
@@ -294,8 +295,26 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard, deleteFromCard }:
     }
   };
 
-  const handleClickExecutorAvatar = () => {
-    setIsExecutorMenuOpen(prev => !prev);
+  const handleDeleteExecutor = async (e: React.MouseEvent<HTMLElement>) => {
+    const { id } = e.currentTarget.dataset;
+    if (id) {
+      try {
+        const newExecutorsList = executors.filter(executor => executor.id !== +id);
+        setExecutors(newExecutorsList);
+        await deleteExecutor(+id);
+      } catch (err) {
+        logger.error(err);
+      }
+    }
+  };
+
+  const handleDeleteExecutors = async () => {
+    try {
+      setExecutors([]);
+      await deleteExecutors(id);
+    } catch (err) {
+      logger.error(err);
+    }
   };
 
   return (
@@ -324,22 +343,21 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard, deleteFromCard }:
                     {(executors.length > 0 || isExecutorsAdd) && (
                       <>
                         <div className={s.executorWrap}>
-                          <p className={s.deadlineTitle}>Исполнители</p>
+                          <div className={s.titleWithCloseBtn}>
+                            <p className={s.deadlineTitle}>Исполнители</p>
+                            <button className={s.closeDeadline} onClick={handleDeleteExecutors}>
+                              <CrossIcon />
+                            </button>
+                          </div>
+
                           <div className={s.executorContainer}>
                             {executors.map(executor => (
                               <div className={s.executorWithMenu} key={executor.id}>
-                                <Avatar
+                                <Executor
                                   name={`${executor.name} ${executor.surname}`}
-                                  onClick={handleClickExecutorAvatar}
+                                  handleDeleteExecutor={handleDeleteExecutor}
+                                  id={executor.id}
                                 />
-                                {isExecutorMenuOpen && (
-                                  <div className={s.moreOptionsWrap}>
-                                    <button>
-                                      <TrashIcon />
-                                      удалить
-                                    </button>
-                                  </div>
-                                )}
                               </div>
                             ))}
 

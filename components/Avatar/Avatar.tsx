@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import cn from 'classnames';
 import s from './Avatar.module.scss';
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css';
 
 interface Props {
   name: string;
@@ -15,9 +17,11 @@ const Avatar = ({ name, classname, onClick }: Props) => {
   }, [name]);
 
   return (
-    <div className={cn(s.avatar, classname)} onClick={onClick}>
-      {abbreviation}
-    </div>
+    <Tippy content={name}>
+      <div className={cn(s.avatar, classname)} onClick={onClick}>
+        {abbreviation}
+      </div>
+    </Tippy>
   );
 };
 

@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 interface Props {
   name: string;
   id: number;
-  handleDeleteDesk: () => void;
+  handleDeleteDesk: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const DeskItem = ({ name, id, handleDeleteDesk }: Props) => {
@@ -36,7 +36,7 @@ const DeskItem = ({ name, id, handleDeleteDesk }: Props) => {
       </Link>
       {isMoreOptionsOpen && (
         <div className={s.moreOptionsWrap}>
-          <button onClick={handleDeleteDesk}>
+          <button onClick={handleDeleteDesk} data-id={id}>
             <TrashIcon />
             удалить
           </button>

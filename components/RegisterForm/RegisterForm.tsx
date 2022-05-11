@@ -36,7 +36,7 @@ const RegisterForm = () => {
     onSubmit: async values => {
       try {
         const { data } = await register(values);
-        setUser(data);
+        setUser(data.user);
         localStorage.setItem('token', data.token);
         await router.push('/desks');
       } catch (err) {

@@ -1,7 +1,7 @@
 import makeRequest from './makeRequest';
 
 export const getMyUser = () => {
-  return makeRequest.get('/users/my');
+  return makeRequest.get('/auth/my-user');
 };
 
 export const getAllUser = () => {
@@ -18,4 +18,12 @@ export const saveExecutor = (executorData: { cardId: number; userId: number; des
 
 export const getExecutorsList = (cardId: number) => {
   return makeRequest.get(`/users/executors-list/${cardId}`);
+};
+
+export const deleteExecutor = (executorId: number) => {
+  return makeRequest.delete(`/users/delete-executor/${executorId}`);
+};
+
+export const deleteExecutors = (cardId: number) => {
+  return makeRequest.delete(`/users/delete-executors/${cardId}`);
 };
