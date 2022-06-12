@@ -153,7 +153,7 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard, deleteFromCard }:
         a = document.createElement('a'),
         file;
 
-      xhr.open('GET', `http://localhost:3001/${card.files[fileIdx].binaryData}`, true);
+      xhr.open('GET', `http://localhost:3001/${card.files[fileIdx].link}`, true);
       xhr.responseType = 'blob';
       xhr.onload = function () {
         file = new Blob([xhr.response], { type: 'application/octet-stream' });
@@ -479,7 +479,7 @@ const CardModal = ({ handleOutsideClick, id, card, updateCard, deleteFromCard }:
                       <ul className={s.filesList}>
                         {card.files.map(file => (
                           <li key={file.id}>
-                            {file.binaryData.trim() && (
+                            {file.link.trim() && (
                               <div className={s.fileWrapper}>
                                 <a data-id={file.id} onClick={handleDownloadFile}>
                                   {file.fileName}

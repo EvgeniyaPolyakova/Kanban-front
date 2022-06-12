@@ -45,6 +45,7 @@ const Desks: NextPage = () => {
       if (user) {
         const { data } = await createDesk({ userId: user.id, name: deskName });
         setDeskArray(prev => [...prev, data]);
+        setDeskName('');
       }
     } catch (err) {
       setDeskArray(prevState);

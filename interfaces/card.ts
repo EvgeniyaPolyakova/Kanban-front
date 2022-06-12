@@ -26,6 +26,6 @@ export interface Comment {
 export interface CardFiles {
   id: number;
   fileName: string;
-  binaryData: string;
+  link: string;
   cardId: number;
 }

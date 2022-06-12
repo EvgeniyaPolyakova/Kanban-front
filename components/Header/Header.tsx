@@ -19,6 +19,7 @@ export function Header() {
     setUser(null);
     localStorage.setItem('token', '');
     router.push('/');
+    setIsUserMenuOpen(false);
   };
 
   return (
