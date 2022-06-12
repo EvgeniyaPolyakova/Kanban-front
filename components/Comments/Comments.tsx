@@ -8,15 +8,14 @@ import useLogger from '../../hooks/useLogger';
 import { saveComment } from '../../api/comments';
 import { getISODate } from '../../helpers/date';
 
-interface Props {
+export interface CommentsProps {
   cardId: number;
   columnId: number;
   updateCard: (columnId: number, cardId: number, field: keyof CardInterface, value: any) => void;
   data: Comment[];
 }
 
-const Comments = ({ cardId, columnId, updateCard, data }: Props) => {
-  // const [comments, setComments] = useState<Comment[]>([]);
+const Comments = ({ cardId, columnId, updateCard, data }: CommentsProps) => {
   const [commentText, setCommentText] = useState<string>('');
   const { user } = useUser();
   const logger = useLogger();
@@ -42,7 +41,7 @@ const Comments = ({ cardId, columnId, updateCard, data }: Props) => {
   return (
     <>
       {data.map(comment => (
-        <div key={comment.id} className={s.commentContainer}>
+        <div data-testid="comment" key={comment.id} className={s.commentContainer}>
           <Avatar name={`${comment.users.name} ${comment.users.surname}`} />
           <div className={s.commentWrap}>
             <div className={s.authorData}>

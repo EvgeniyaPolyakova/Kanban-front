@@ -11,7 +11,7 @@ import useLogger from '../../hooks/useLogger';
 import { createTask, deleteChecklistItem, toggleComplited } from '../../api/checklist';
 import { CardInterface } from '../../interfaces/card';
 
-interface Props {
+export interface ChecklistProps {
   cardId: number;
   data: CardChecklist[];
   updateCard: (columnId: number, cardId: number, field: keyof CardInterface, value: any) => void;
@@ -19,7 +19,7 @@ interface Props {
   deleteFromCard: (columnId: number, cardId: number, field: keyof CardInterface, deleteItemIdx: number) => void;
 }
 
-const Checklist = ({ cardId, data, updateCard, columnId, deleteFromCard }: Props) => {
+const Checklist = ({ cardId, data, updateCard, columnId, deleteFromCard }: ChecklistProps) => {
   const [newChecklistItem, setNewChecklistItem] = useState<string>('');
   const [isOpenCreateForm, setIsOpenCreateForm] = useState<boolean>(false);
   const [checklistTasks, setChecklistsTask] = useState<CardChecklist[]>(data);
@@ -91,14 +91,14 @@ const Checklist = ({ cardId, data, updateCard, columnId, deleteFromCard }: Props
   return (
     <>
       <div className={s.checklistProgress}>
-        <span className={s.progressPercent}>{`${progressWidth}%`}</span>
+        <span data-testid="checklist-progress" className={s.progressPercent}>{`${progressWidth}%`}</span>
         <div className={s.progressBar}>
           <div className={s.progress} style={{ width: `${progressWidth}%` }} />
         </div>
       </div>
 
       {checklistTasks.map(task => (
-        <div key={task.id} className={s.checklistTaskWrap}>
+        <div data-testid="checklist-task" key={task.id} className={s.checklistTaskWrap}>
           <label className={s.checkboxTitle}>
             <input
               data-id={task.id}
@@ -108,18 +108,18 @@ const Checklist = ({ cardId, data, updateCard, columnId, deleteFromCard }: Props
               checked={task.isChecked}
               value={task.task}
             />
-            {task.isChecked ? <CheckedCheckbox /> : <Checkbox />}
+            {/*{task.isChecked ? <CheckedCheckbox /> : <Checkbox />}*/}
             {task.task}
           </label>
           <button className={s.trashChecklistItem} onClick={handleDeleteTask} data-id={task.id}>
-            <TrashIcon />
+            {/*<TrashIcon />*/}
           </button>
         </div>
       ))}
 
       {!isOpenCreateForm ? (
         <button className={s.addChecklistItem} onClick={handleClickAddNewItem}>
-          <AddChecklistIcon /> Добавить элемент
+          {/*<AddChecklistIcon /> */} Добавить элемент
         </button>
       ) : (
         <form onSubmit={handleAddNewItem}>
